@@ -5,7 +5,9 @@ This is a project creating web-based interface for data visualization using boke
 
 ## Bokeh installation 
     pip install bokeh
+    
 You will also need pandas for reading excel files
+
     pip install pandas
 
 ## How to run the code
