@@ -5,3 +5,6 @@ This is a project creating web-based interface for data visualization using boke
 
 ## Bokeh installation 
     pip install bokeh
+
+## How to run the code
+    bokeh serve --show newtry.py
