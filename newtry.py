@@ -5,7 +5,7 @@ from bokeh.models.widgets import Slider, TextInput, Select
 from bokeh.layouts import column, row
 from bokeh.plotting import figure
 from bokeh.models.glyphs import Scatter
-from funcs import preprocess
+from funcs import preprocess, plot_settings
 
 import base64
 import io
@@ -19,7 +19,7 @@ source = ColumnDataSource(data=empty_data)
 source_backup = ColumnDataSource(data=empty_data)
 
 # x_range=source.data["Paper ID"]
-plot = figure(height=400, width=500, title='Datasheet visualization', x_axis_label="Var1", y_axis_label="Var2")
+plot = figure(height=400, width=500, title='Datasheet visualization', tooltips=None)
 plot.scatter('x', 'y', source=source)
 # scatter = Scatter(x="Paper ID", y="y", marker="circle")
 # plot.add_glyph(source, scatter)
@@ -28,24 +28,14 @@ plot.scatter('x', 'y', source=source)
 # file_input = FileInput(accept='.xlsx', width=400)
 file_input = FileInput(accept='.xlsx')
 
-# All plotable variables from the file, hard coded for now
-# plotable = ['data_size_all', 'performance_auc', 'performance_precision (PPV)', 'performance_specificity', 
-            # 'performance_NPV', 'performance_sensitivity (recall)', 'performance_F1', 'performance_accuracy']
-
 
 # Filters that you can apply on the plotting results, hard coded for now
 filters = ['data_units', 'raw data availability', 'processed data availability', 'task', 'subspec', 'sample type']
 
-# list to store all selectable values in the filters
-
-
-# filter0 = ['images', 'patients', 'cases', 'text']
-# filter0.insert(0, 'All')
-
 
 # Set up widgets for variables that need to be plotted, and filters to apply
-var_1 = Select(title="Please select the 1st variable", value="select", options=[])
-var_2 = Select(title="Please select the 2nd variable", value="select", options=[])
+var_1 = Select(title="Please select var on x axis", value="(select)", options=[])
+var_2 = Select(title="Please select var on y axis", value="(select)", options=[])
 
 
 filter0_widget = Select(title=filters[0], value="All", options=[])
@@ -63,7 +53,7 @@ def upload_data(attr, old, new):
 
     # Update selection widget: variables to plot
     numeric_var = list(df.select_dtypes(include='float64').columns.values)
-    numeric_var.insert(0, "select")
+    numeric_var.insert(0, "(select)")
     var_1.options = numeric_var
     var_2.options = numeric_var
 
@@ -78,7 +68,7 @@ def update_plot():
     plot_var_1 = str(var_1.value)
     plot_var_2 = str(var_2.value)
 
-    if plot_var_1 == "select" or plot_var_2 == "select":
+    if (plot_var_1 == "(select)") or (plot_var_2 == "(select)") or (plot_var_1 == plot_var_2):
         # text_warning = Text(x="x", y="y", text="Please select your variables to plot")
         # plot.title = "Please select your variables to plot!!"
         button_apply.label = "Please re-select!"
@@ -96,27 +86,15 @@ def update_plot():
         else:
             df = pd.DataFrame(source_backup.data)
             selected = df[df[filters[0]] == filter0]
-    
 
-        x = selected[plot_var_1]
-        y = selected[plot_var_2]
-        plot.x_range.start = x.min()
-        plot.x_range.end = x.max()
-        plot.y_range.start = y.min()
-        plot.y_range.end = y.max()
-        plot.xaxis.axis_label = plot_var_1
-        plot.yaxis.axis_label = plot_var_2
+        # Set x and y range, labels, function plot_settings in funcs.py
+        plot_settings(plot, selected, plot_var_1, plot_var_2)
 
-        # TODO: need to retain all columns after filtering
-
-        plot.scatter(x, y, source=source)
-
+        selected = selected.rename(columns={plot_var_1: 'x', plot_var_2: 'y'})
+        source.data = selected
         
-        # source.add(pd.DataFrame([{"x": x, "y": y}]))
-        # source.data = {"x": x, "y": y}
 
         # Create hover tool
-        # print(source.data)
         hover = HoverTool(tooltips=[("Paper ID", "@{Paper ID}")])
         plot.add_tools(hover)
 

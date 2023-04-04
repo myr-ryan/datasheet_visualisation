@@ -7,7 +7,7 @@ def type_conversion(df):
         try:
             df = df.astype({column_name: conv_type})
         except:
-            print("Please check the name of column. It should be: ", column_name)
+            print("Please check column: ", column_name)
         return df
 
     df = astype_conv(df, "Paper ID", int)
@@ -68,7 +68,7 @@ def preprocess(df):
     # Only keep the rows that have been recorded
     # Criteria: for a specific row, if all the values except column "Title" is not empty,
     #           then it means this row has been recorded.
-    df = df.dropna(subset=list(set(column_names)-set(["Title"])), how='all')
+    df = df.dropna(subset=list(set(column_names)-set(["Title", "year", "algo_neural_net"])), how='all')
     df = type_conversion(df)
 
 
@@ -86,3 +86,15 @@ def preprocess(df):
     
 
     return df, filter_values
+
+def plot_settings(plot, selected, plot_var_1, plot_var_2):
+        x = selected[plot_var_1]
+        y = selected[plot_var_2]
+        plot.x_range.start = x.min()
+        plot.x_range.end = x.max()
+        plot.y_range.start = y.min()
+        plot.y_range.end = y.max()
+        plot.xaxis.axis_label = plot_var_1
+        plot.yaxis.axis_label = plot_var_2
+
+        
