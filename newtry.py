@@ -1,11 +1,11 @@
 from bokeh.io import curdoc
 from bokeh.models.widgets import FileInput
-from bokeh.models import ColumnDataSource, Button, ColorPicker, HoverTool
+from bokeh.models import ColumnDataSource, Button, ColorPicker, HoverTool, DateRangeSlider, MultiChoice, CheckboxGroup, Div
 from bokeh.models.widgets import Slider, TextInput, Select
 from bokeh.layouts import column, row
 from bokeh.plotting import figure
 from bokeh.models.glyphs import Scatter
-from funcs import preprocess, plot_settings
+from funcs import preprocess, plot_settings, code_2_text, text_2_code
 
 import base64
 import io
@@ -30,7 +30,7 @@ file_input = FileInput(accept='.xlsx')
 
 
 # Filters that you can apply on the plotting results, hard coded for now
-filters = ['data_units', 'raw data availability', 'processed data availability', 'task', 'subspec', 'sample type']
+# filters = ['data_units', 'raw data availability', 'processed data availability', 'task', 'subspec', 'sample type']
 
 
 # Set up widgets for variables that need to be plotted, and filters to apply
@@ -38,7 +38,9 @@ var_1 = Select(title="Please select var on x axis", value="(select)", options=[]
 var_2 = Select(title="Please select var on y axis", value="(select)", options=[])
 
 
-filter0_widget = Select(title=filters[0], value="All", options=[])
+# filter_widget = Select(, value="None", options=[])
+filter_text = Div(text='''Select your filters:''')
+filter_widget = CheckboxGroup(name='Filters', labels=[], active=[])
 
 # Callback for file_input
 def upload_data(attr, old, new):
@@ -58,7 +60,8 @@ def upload_data(attr, old, new):
     var_2.options = numeric_var
 
     # Update selection widget: filters
-    filter0_widget.options = filter_values[0]
+    # print(filter_values)
+    filter_widget.labels = filter_values
     source.data = df
     source_backup.data = df
     print('Dataset uploaded successfully')
@@ -79,14 +82,60 @@ def update_plot():
     else:
         button_apply.label = "Generate"
         button_apply.button_type = "primary"
-        filter0 = str(filter0_widget.value)
-        # plot.y_axis_label = var_value
-        if filter0 == "All":
-            selected = pd.DataFrame(source_backup.data)
-        else:
-            df = pd.DataFrame(source_backup.data)
-            selected = df[df[filters[0]] == filter0]
+        
+        filter_list = filter_widget.active
 
+        selected = pd.DataFrame(source_backup.data)
+        for f in filter_list:
+            column_name = filter_widget.labels[f]  
+        
+            # Check if the filter is categorical data
+            is_category = (source.data[column_name].dtype == 'category')
+
+            if is_category:
+                f_value = []
+                for value_widget in widgets.children[1].children:
+                    if value_widget.title == column_name:
+                        f_value = value_widget.value
+                        f_value = [text_2_code(column_name, x) for x in f_value]
+                        # print(f_value)
+                if f_value:
+                    # print(list(set(df[column_name])))
+                    selected = selected[selected[column_name].isin(f_value)]
+                    print(f_value)
+                    # print(selected)
+                # else:
+                    # If no selection has been made, plot everything
+                    # selected = pd.DataFrame(source_backup.data)
+            else:
+                # TODO
+                selected = pd.DataFrame(source_backup.data)
+
+
+        # print(filter_list)
+
+
+        # selectables = str(selectable_values.value)
+        # print(selectables)
+        #       if filter_selected == "All":
+        #           selected = pd.DataFrame(source_backup.data)
+        #       else:
+        #           df = pd.DataFrame(source_backup.data)
+        #           selected = df[df[filters[0]] == selected]       
+
+
+        
+
+
+        # OLD
+        # # plot.y_axis_label = var_value
+        # if filter_selected == "All":
+        #     selected = pd.DataFrame(source_backup.data)
+        # else:
+        #     df = pd.DataFrame(source_backup.data)
+        #     selected = df[df[filters[0]] == filter0]
+
+        # selected = pd.DataFrame(source_backup.data)
         # Set x and y range, labels, function plot_settings in funcs.py
         plot_settings(plot, selected, plot_var_1, plot_var_2)
 
@@ -99,9 +148,53 @@ def update_plot():
         plot.add_tools(hover)
 
 
+# Inputs:
+#       attr
+#       old: includes all values in argument 'active' in 'filter_widget' CheckBox before checking, values are indices of selected filters, e.g. [0, 1]
+#       new: includes all values in argument 'active' in 'filter_widget' CheckBox after checking, values are indices of selected filters, e.g. [0, 1, 2]
+def update_filter(attr, old, new):
+    # if add a filter
+    if len(new) > len(old):
+        # Find the newly selected filter
+        old_temp = set(old)
+        selected_column_index = [x for x in new if x not in old_temp][0]
+        column_name = filter_widget.labels[selected_column_index]  
+        
+        # Check if the filter is categorical data
+        is_category = (source.data[column_name].dtype == 'category')
+        # print(column_name + ': ' +  str(is_category)) 
+
+        if is_category:
+            df = pd.DataFrame(source_backup.data)
+            options = df[column_name]
+            options = list(map(str, list(set(options.tolist()))))
+            options = [code_2_text(column_name, x) for x in options]
+
+            selectable_values = MultiChoice(title=column_name, value=[], options=options)
+            widgets.children[1].children.insert(0, selectable_values)
+                
+        else:
+            pass
+               
+    # if unselect/remove a filter
+    else:
+        # Find the unselected/removed filter
+        new_temp = set(new)
+        deleted_column_index = [x for x in old if x not in new_temp][0]
+        column_name = filter_widget.labels[deleted_column_index] 
+        # Check if the filter is categorical data
+        is_category = (source.data[column_name].dtype == 'category')
+        # print(column_name + ': ' +  str(is_category)) 
+
+        if is_category:
+            # Delete the unselected/removed filter widget
+            for value_widget in widgets.children[1].children:
+                if value_widget.title == column_name:
+                    widgets.children[1].children.remove(value_widget)
 
 
 file_input.on_change('value', upload_data)
+filter_widget.on_change('active', update_filter)
 
 
 
@@ -116,12 +209,12 @@ button_apply.on_click(update_plot)
 
 
 
-widgets = row(filter0_widget)
+widgets = row(filter_widget, column())
 # widgets = row(plot_var)
 
-curdoc().add_root(row(column(file_input, row(var_1, var_2), widgets, button_apply), plot))
+curdoc().add_root(row(column(file_input, row(var_1, var_2), filter_text, widgets, button_apply), plot))
 
 
 
-    # data_table.columns = [TableColumn(field=col, title=col) for col in df.columns]
+# data_table.columns = [TableColumn(field=col, title=col) for col in df.columns]
 # data_table = DataTable(source=source, columns=columns, width=400, height=400)

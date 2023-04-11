@@ -1,6 +1,39 @@
 import pandas as pd
 import numpy as np
 
+ml_task_text_dict = {'Binary classification': 0.0,
+                'Multi-class classification': 1.0,
+                'Regression': 2.0,
+                'Segmentation': 3.0,
+                'Clustering/unsupervised': 4.0,
+                'Object detection': 5.0,
+                'NLP': 6.0}
+
+ml_task_code_dict = {'0.0': 'Binary classification',
+                '1.0': 'Multi-class classification',
+                '2.0': 'Regression',
+                '3.0': 'Segmentation',
+                '4.0': 'Clustering/unsupervised',
+                '5.0': 'Object detection',
+                '6.0': 'NLP'}
+
+data_text_dict = {'No': 0.0,
+                'Yes': 1.0,
+                'Upon request': 2.0}
+
+data_code_dict = {'0.0': 'No',
+                  '1.0': 'Yes',
+                  '2.0': 'Upon request'}
+
+gender_text_dict = {'Female': 0.0,
+                   'Male': 1.0,
+                   'Mixed': 2.0,
+                   'Not specified': 3.0}
+
+gender_code_dict = {'0.0': 'Female',
+                    '1.0': 'Male',
+                    '2.0': 'Mixed',
+                    '3.0': 'Not specified'}
 
 def type_conversion(df):
     def astype_conv(df, column_name, conv_type):
@@ -12,7 +45,7 @@ def type_conversion(df):
 
     df = astype_conv(df, "Paper ID", int)
     df = astype_conv(df, "Title", str)
-    df = astype_conv(df, "ml_task_description", int)
+    df = astype_conv(df, "ml_task_description", "category")
     df = astype_conv(df, "data_units", str)
     df = astype_conv(df, "data_size_all", float)
     df = astype_conv(df, "data_size_validation", float)
@@ -25,9 +58,9 @@ def type_conversion(df):
     df = astype_conv(df, "class_labels", str)
     df = astype_conv(df, "data_source", str)
     df = astype_conv(df, "data_links", str)
-    df = astype_conv(df, "raw data availability", int)
-    df = astype_conv(df, "processed data availability", int)
-    df = astype_conv(df, "gender", int)
+    df = astype_conv(df, "raw data availability", "category")
+    df = astype_conv(df, "processed data availability", "category")
+    df = astype_conv(df, "gender", "category")
     df = astype_conv(df, "age specified", str)
     df = astype_conv(df, "task_detection", bool)
     df = astype_conv(df, "task_diagnosis", bool)
@@ -53,6 +86,8 @@ def type_conversion(df):
     df = astype_conv(df, "data collection technology", str)
     df = astype_conv(df, "algorithm-pipeline", str)
     df = astype_conv(df, "sample type", str)
+    df = astype_conv(df, "year", int)
+    df = astype_conv(df, "algo_neural_net", bool)
 
     return df
 
@@ -70,13 +105,16 @@ def preprocess(df):
     #           then it means this row has been recorded.
     df = df.dropna(subset=list(set(column_names)-set(["Title", "year", "algo_neural_net"])), how='all')
     df = type_conversion(df)
+    # print(df.dtypes)
 
+    filter_values = df.select_dtypes(include=['category', 'bool']).columns.tolist()
 
+    # filter_values.insert(0, "None")
     # TODO
     
-    filter_values = []
-    filter_values.append(list(set(df['data_units'].tolist())))
-    filter_values[0].insert(0, "All")
+    # filter_values = []
+    # filter_values.append(list(set(df['data_units'].tolist())))
+    # filter_values[0].insert(0, "All")
     # filter_values.append(list(set(df['raw data availability'].tolist())))
     # filter_values.append(list(set(df['processed data availability'].tolist())))
     
@@ -97,4 +135,34 @@ def plot_settings(plot, selected, plot_var_1, plot_var_2):
         plot.xaxis.axis_label = plot_var_1
         plot.yaxis.axis_label = plot_var_2
 
-        
+
+def code_2_text(column_name, value):
+    try:        
+        if column_name == "ml_task_description":
+            value = ml_task_code_dict[value]
+        if column_name == "raw data availability":
+            value = data_code_dict[value]
+        if column_name == "processed data availability":
+            value = data_code_dict[value]
+        if column_name == "gender":
+            value = gender_code_dict[value]
+    except:
+        print('Please check column: ', column_name)
+
+    return value
+
+def text_2_code(column_name, value):
+
+    try:        
+        if column_name == "ml_task_description":
+            value = ml_task_text_dict[value]
+        if column_name == "raw data availability":
+            value = data_text_dict[value]
+        if column_name == "processed data availability":
+            value = data_text_dict[value]
+        if column_name == "gender":
+            value = gender_text_dict[value]
+    except:
+        print('Please check column: ', column_name)
+
+    return value
