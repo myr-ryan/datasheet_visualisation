@@ -39,7 +39,11 @@ var_2 = Select(title="Please select var on y axis", value="(select)", options=[]
 
 
 # filter_widget = Select(, value="None", options=[])
-filter_text = Div(text='''Select your filters:''')
+task_text = Div(text='''Select task:''')
+task_widget = CheckboxGroup(name='Tasks', labels=[], active=[])
+subspec_text = Div(text='''Select subspecies:''')
+subspec_widget = CheckboxGroup(name='Subspec', labels=[], active=[])
+filter_text = Div(text='''Select other filters:''')
 filter_widget = CheckboxGroup(name='Filters', labels=[], active=[])
 
 # Callback for file_input
@@ -51,7 +55,7 @@ def upload_data(attr, old, new):
 
     # Function 'preprocess' in file funcs.py
     # Returns the correct data types in each column and the possible selections of filters
-    df, filter_values = preprocess(df)
+    df, task_filters, subspec_filters, other_filters = preprocess(df)
 
     # Update selection widget: variables to plot
     numeric_var = list(df.select_dtypes(include='float64').columns.values)
@@ -61,7 +65,9 @@ def upload_data(attr, old, new):
 
     # Update selection widget: filters
     # print(filter_values)
-    filter_widget.labels = filter_values
+    task_widget.labels = task_filters
+    subspec_widget.labels = subspec_filters
+    filter_widget.labels = other_filters
     source.data = df
     source_backup.data = df
     print('Dataset uploaded successfully')
@@ -72,25 +78,32 @@ def update_plot():
     plot_var_2 = str(var_2.value)
 
     if (plot_var_1 == "(select)") or (plot_var_2 == "(select)") or (plot_var_1 == plot_var_2):
-        # text_warning = Text(x="x", y="y", text="Please select your variables to plot")
-        # plot.title = "Please select your variables to plot!!"
-        button_apply.label = "Please re-select!"
-        button_apply.button_type = "danger"
-        # text_warning = Text()
-        # plot.add_layout(text_warning)
-    
+        button_apply.label = "Please re-select variables!"
+        button_apply.button_type = "danger"  
     else:
         button_apply.label = "Generate"
         button_apply.button_type = "primary"
-        
+
+        task_list = task_widget.active
+        subspec_list = subspec_widget.active  
         filter_list = filter_widget.active
 
         selected = pd.DataFrame(source_backup.data)
-        for f in filter_list:
-            column_name = filter_widget.labels[f]  
+
+        if task_list:
+            task_names = [task_widget.labels[t] for t in task_list]
+            selected = selected[selected[task_names].any(axis='columns')]
+
+        if subspec_list:
+            subspec_names = [subspec_widget.labels[s] for s in subspec_list]
+            selected = selected[selected[subspec_names].any(axis='columns')]
+
+
+        for f in filter_list:        
+            column_name = filter_widget.labels[f]             
         
             # Check if the filter is categorical data
-            is_category = (source.data[column_name].dtype == 'category')
+            is_category = (selected[column_name].dtype == 'category')
 
             if is_category:
                 f_value = []
@@ -98,44 +111,15 @@ def update_plot():
                     if value_widget.title == column_name:
                         f_value = value_widget.value
                         f_value = [text_2_code(column_name, x) for x in f_value]
-                        # print(f_value)
+                
                 if f_value:
-                    # print(list(set(df[column_name])))
                     selected = selected[selected[column_name].isin(f_value)]
-                    print(f_value)
-                    # print(selected)
-                # else:
-                    # If no selection has been made, plot everything
-                    # selected = pd.DataFrame(source_backup.data)
+
             else:
-                # TODO
-                selected = pd.DataFrame(source_backup.data)
+                df = pd.DataFrame(source_backup.data)
+                selected = selected[df[column_name] == True]      
 
 
-        # print(filter_list)
-
-
-        # selectables = str(selectable_values.value)
-        # print(selectables)
-        #       if filter_selected == "All":
-        #           selected = pd.DataFrame(source_backup.data)
-        #       else:
-        #           df = pd.DataFrame(source_backup.data)
-        #           selected = df[df[filters[0]] == selected]       
-
-
-        
-
-
-        # OLD
-        # # plot.y_axis_label = var_value
-        # if filter_selected == "All":
-        #     selected = pd.DataFrame(source_backup.data)
-        # else:
-        #     df = pd.DataFrame(source_backup.data)
-        #     selected = df[df[filters[0]] == filter0]
-
-        # selected = pd.DataFrame(source_backup.data)
         # Set x and y range, labels, function plot_settings in funcs.py
         plot_settings(plot, selected, plot_var_1, plot_var_2)
 
@@ -173,8 +157,6 @@ def update_filter(attr, old, new):
             selectable_values = MultiChoice(title=column_name, value=[], options=options)
             widgets.children[1].children.insert(0, selectable_values)
                 
-        else:
-            pass
                
     # if unselect/remove a filter
     else:
@@ -208,11 +190,10 @@ button_apply.on_click(update_plot)
 # picker.js_link('color', scatter.glyph, 'line_color')
 
 
-
 widgets = row(filter_widget, column())
 # widgets = row(plot_var)
 
-curdoc().add_root(row(column(file_input, row(var_1, var_2), filter_text, widgets, button_apply), plot))
+curdoc().add_root(column(file_input, row(var_1, var_2), row(task_text, task_widget, subspec_text, subspec_widget, filter_text, widgets), button_apply, plot))
 
 
 

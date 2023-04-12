@@ -65,11 +65,11 @@ def type_conversion(df):
     df = astype_conv(df, "task_detection", bool)
     df = astype_conv(df, "task_diagnosis", bool)
     df = astype_conv(df, "task_prognosis", bool)
-    df = astype_conv(df, "treatment design (monitoring, planning)", bool)
+    df = astype_conv(df, "task_treatment_design", bool)
     df = astype_conv(df, "treatment design comment", str)
     df = astype_conv(df, "task_risk prediction", bool)
     df = astype_conv(df, "task_subtyping", bool)
-    df = astype_conv(df, "task_other ( specify)", str)
+    df = astype_conv(df, "task_other ( specify)", bool)
     df = astype_conv(df, "subspec_ovarian", bool)
     df = astype_conv(df, "subspec_cervical", bool)
     df = astype_conv(df, "subspec_endometrial", bool)
@@ -108,22 +108,13 @@ def preprocess(df):
     # print(df.dtypes)
 
     filter_values = df.select_dtypes(include=['category', 'bool']).columns.tolist()
-
-    # filter_values.insert(0, "None")
-    # TODO
-    
-    # filter_values = []
-    # filter_values.append(list(set(df['data_units'].tolist())))
-    # filter_values[0].insert(0, "All")
-    # filter_values.append(list(set(df['raw data availability'].tolist())))
-    # filter_values.append(list(set(df['processed data availability'].tolist())))
-    
-    # print(len())
-    # print(filter_values) 
+    task_filters = [x for x in filter_values if x.startswith('task')]
+    subspec_filters = [x for x in filter_values if x.startswith('subspec')]
+    other_filters = [x for x in filter_values if (not x.startswith('task')) and (not x.startswith('subspec'))]
 
     
 
-    return df, filter_values
+    return df, task_filters, subspec_filters, other_filters
 
 def plot_settings(plot, selected, plot_var_1, plot_var_2):
         x = selected[plot_var_1]
@@ -147,7 +138,7 @@ def code_2_text(column_name, value):
         if column_name == "gender":
             value = gender_code_dict[value]
     except:
-        print('Please check column: ', column_name)
+        print('Somethings wrong in code_2_text')
 
     return value
 
@@ -163,6 +154,6 @@ def text_2_code(column_name, value):
         if column_name == "gender":
             value = gender_text_dict[value]
     except:
-        print('Please check column: ', column_name)
+        print('Somethings wrong in text_2_code')
 
     return value
