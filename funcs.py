@@ -35,68 +35,40 @@ gender_code_dict = {'0.0': 'Female',
                     '2.0': 'Mixed',
                     '3.0': 'Not specified'}
 
-def type_conversion(df):
-    def astype_conv(df, column_name, conv_type):
-        try:
-            df = df.astype({column_name: conv_type})
-        except:
-            print("Please check column: ", column_name)
-        return df
+def is_equal_two_list(list1, list2):
 
-    df = astype_conv(df, "Paper ID", int)
-    df = astype_conv(df, "Title", str)
-    df = astype_conv(df, "ml_task_description", "category")
-    df = astype_conv(df, "data_units", str)
-    df = astype_conv(df, "data_size_all", float)
-    df = astype_conv(df, "data_size_validation", float)
-    df = astype_conv(df, "data_size_testing", float)
-    df = astype_conv(df, "data_size_training", float)
-    df = astype_conv(df, "explainability", str)
-    df = astype_conv(df, "balanced", bool)
-    df = astype_conv(df, "balanced_comment", str)
-    df = astype_conv(df, "bias", str)
-    df = astype_conv(df, "class_labels", str)
-    df = astype_conv(df, "data_source", str)
-    df = astype_conv(df, "data_links", str)
-    df = astype_conv(df, "raw data availability", "category")
-    df = astype_conv(df, "processed data availability", "category")
-    df = astype_conv(df, "gender", "category")
-    df = astype_conv(df, "age specified", str)
-    df = astype_conv(df, "task_detection", bool)
-    df = astype_conv(df, "task_diagnosis", bool)
-    df = astype_conv(df, "task_prognosis", bool)
-    df = astype_conv(df, "task_treatment_design", bool)
-    df = astype_conv(df, "treatment design comment", str)
-    df = astype_conv(df, "task_risk prediction", bool)
-    df = astype_conv(df, "task_subtyping", bool)
-    df = astype_conv(df, "task_other ( specify)", bool)
-    df = astype_conv(df, "subspec_ovarian", bool)
-    df = astype_conv(df, "subspec_cervical", bool)
-    df = astype_conv(df, "subspec_endometrial", bool)
-    df = astype_conv(df, "subspec_metastasis", bool)
-    df = astype_conv(df, "subspec_other (specify)", bool)
-    df = astype_conv(df, "performance_auc", float)
-    df = astype_conv(df, "performance_precision (PPV)", float)
-    df = astype_conv(df, "performance_specificity", float)
-    df = astype_conv(df, "performance_NPV", float)
-    df = astype_conv(df, "performance_sensitivity (recall)", float)
-    df = astype_conv(df, "performance_F1", float)
-    df = astype_conv(df, "performance_accuracy", float)
-    df = astype_conv(df, "neural network type", str)
-    df = astype_conv(df, "data collection technology", str)
-    df = astype_conv(df, "algorithm-pipeline", str)
-    df = astype_conv(df, "sample type", str)
-    df = astype_conv(df, "year", int)
-    df = astype_conv(df, "algo_neural_net", bool)
+    if len(list1) == len(list2):
+        is_same = all([x == y for x, y in zip(list1, list2)])
+    else:
+        is_same = False
+    return is_same
+
+
+def type_conversion(df):
+    columns = list(df.columns.values)
+    # print(columns)
+    for c in columns:
+        if df[c].dtype == np.float64 or df[c].dtype == np.int64 or df[c].dtype == np.float32 or df[c].dtype == np.int32:        
+            column_list = np.unique(df[c].tolist())
+            column_list = [x for x in column_list if ~np.isnan(x)]
+
+            if is_equal_two_list(column_list, [0., 1.]):
+                df = df.astype({c: bool})
+            else:
+                if len(column_list) >= 2 and len(column_list) < 10:
+                    df = df.astype({c: 'category'})
+        elif df[c].dtype == 'object':
+            df = df.astype({c: 'string'})
 
     return df
 
-
-# Inputs:
+##############################################################################
+# Input(s):
 #       df: dataframe from excel file
-# Outputs:
+# Output(s):
 #       df: dataframe after preprocessing
 #       filter_values: in form list of list. contains selectable values from all filters
+##############################################################################
 def preprocess(df):
     
     column_names = list(df.columns.values)
@@ -104,17 +76,20 @@ def preprocess(df):
     # Criteria: for a specific row, if all the values except column "Title" is not empty,
     #           then it means this row has been recorded.
     df = df.dropna(subset=list(set(column_names)-set(["Title", "year", "algo_neural_net"])), how='all')
+    # print(df)
     df = type_conversion(df)
+    # df = df.convert_dtypes()
     # print(df.dtypes)
 
     filter_values = df.select_dtypes(include=['category', 'bool']).columns.tolist()
     task_filters = [x for x in filter_values if x.startswith('task')]
     subspec_filters = [x for x in filter_values if x.startswith('subspec')]
     other_filters = [x for x in filter_values if (not x.startswith('task')) and (not x.startswith('subspec'))]
-
+    numeric_var = df.select_dtypes(include=['float']).columns.tolist()
+    numeric_var.insert(0, "(select)")
     
 
-    return df, task_filters, subspec_filters, other_filters
+    return df, task_filters, subspec_filters, other_filters, numeric_var
 
 def plot_settings(plot, selected, plot_var_1, plot_var_2):
         x = selected[plot_var_1]
@@ -141,6 +116,7 @@ def code_2_text(column_name, value):
         print('Somethings wrong in code_2_text')
 
     return value
+
 
 def text_2_code(column_name, value):
 
