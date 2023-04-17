@@ -1,39 +1,6 @@
 import pandas as pd
 import numpy as np
 
-ml_task_text_dict = {'Binary classification': 0.0,
-                'Multi-class classification': 1.0,
-                'Regression': 2.0,
-                'Segmentation': 3.0,
-                'Clustering/unsupervised': 4.0,
-                'Object detection': 5.0,
-                'NLP': 6.0}
-
-ml_task_code_dict = {'0.0': 'Binary classification',
-                '1.0': 'Multi-class classification',
-                '2.0': 'Regression',
-                '3.0': 'Segmentation',
-                '4.0': 'Clustering/unsupervised',
-                '5.0': 'Object detection',
-                '6.0': 'NLP'}
-
-data_text_dict = {'No': 0.0,
-                'Yes': 1.0,
-                'Upon request': 2.0}
-
-data_code_dict = {'0.0': 'No',
-                  '1.0': 'Yes',
-                  '2.0': 'Upon request'}
-
-gender_text_dict = {'Female': 0.0,
-                   'Male': 1.0,
-                   'Mixed': 2.0,
-                   'Not specified': 3.0}
-
-gender_code_dict = {'0.0': 'Female',
-                    '1.0': 'Male',
-                    '2.0': 'Mixed',
-                    '3.0': 'Not specified'}
 
 def is_equal_two_list(list1, list2):
 
@@ -46,19 +13,18 @@ def is_equal_two_list(list1, list2):
 
 def type_conversion(df):
     columns = list(df.columns.values)
-    # print(columns)
     for c in columns:
-        if df[c].dtype == np.float64 or df[c].dtype == np.int64 or df[c].dtype == np.float32 or df[c].dtype == np.int32:        
-            column_list = np.unique(df[c].tolist())
-            column_list = [x for x in column_list if ~np.isnan(x)]
+        column_data = np.unique(df[c].tolist())
+        column_data_no_nan = [x for x in column_data if str(x) != 'nan']
 
-            if is_equal_two_list(column_list, [0., 1.]):
-                df = df.astype({c: bool})
-            else:
-                if len(column_list) >= 2 and len(column_list) < 10:
-                    df = df.astype({c: 'category'})
+        # if is_equal_two_list(column_data_no_nan, [0., 1.]):
+        #     df = df.astype({c: bool})
+        if len(column_data_no_nan) >=2 and len(column_data_no_nan) <= 7:
+            df = df.astype({c: 'category'})
         elif df[c].dtype == 'object':
             df = df.astype({c: 'string'})
+        else:
+            df = df.astype({c: 'float'})
 
     return df
 
@@ -79,12 +45,18 @@ def preprocess(df):
     # print(df)
     df = type_conversion(df)
     # df = df.convert_dtypes()
-    # print(df.dtypes)
-
-    filter_values = df.select_dtypes(include=['category', 'bool']).columns.tolist()
+   
+    filter_values = df.select_dtypes(include=['category']).columns.tolist()
     task_filters = [x for x in filter_values if x.startswith('task')]
+    for f in task_filters:
+        df = df.astype({f: 'bool'})
     subspec_filters = [x for x in filter_values if x.startswith('subspec')]
+    for f in subspec_filters:
+        df = df.astype({f: 'bool'})
     other_filters = [x for x in filter_values if (not x.startswith('task')) and (not x.startswith('subspec'))]
+    other_filters.insert(0, 'subspecialities')
+    other_filters.insert(0, 'tasks')
+    other_filters.insert(0, '(select)')
     numeric_var = df.select_dtypes(include=['float']).columns.tolist()
     numeric_var.insert(0, "(select)")
     
@@ -100,36 +72,3 @@ def plot_settings(plot, selected, plot_var_1, plot_var_2):
         plot.y_range.end = y.max()
         plot.xaxis.axis_label = plot_var_1
         plot.yaxis.axis_label = plot_var_2
-
-
-def code_2_text(column_name, value):
-    try:        
-        if column_name == "ml_task_description":
-            value = ml_task_code_dict[value]
-        if column_name == "raw data availability":
-            value = data_code_dict[value]
-        if column_name == "processed data availability":
-            value = data_code_dict[value]
-        if column_name == "gender":
-            value = gender_code_dict[value]
-    except:
-        print('Somethings wrong in code_2_text')
-
-    return value
-
-
-def text_2_code(column_name, value):
-
-    try:        
-        if column_name == "ml_task_description":
-            value = ml_task_text_dict[value]
-        if column_name == "raw data availability":
-            value = data_text_dict[value]
-        if column_name == "processed data availability":
-            value = data_text_dict[value]
-        if column_name == "gender":
-            value = gender_text_dict[value]
-    except:
-        print('Somethings wrong in text_2_code')
-
-    return value

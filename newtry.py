@@ -5,7 +5,7 @@ from bokeh.models.widgets import Slider, TextInput, Select
 from bokeh.layouts import column, row
 from bokeh.plotting import figure
 from bokeh.models.glyphs import Scatter
-from funcs import preprocess, plot_settings, code_2_text, text_2_code
+from funcs import preprocess, plot_settings
 
 import base64
 import io
@@ -38,17 +38,20 @@ var_1 = Select(title="Please select var on x axis", value="(select)", options=[]
 var_2 = Select(title="Please select var on y axis", value="(select)", options=[])
 
 
-# filter_widget = Select(, value="None", options=[])
-task_text = Div(text='''Select task:''')
-task_widget = CheckboxGroup(name='Tasks', labels=[], active=[])
+# filter_text = Div(text='''Select filter:''')
+filter_widget = Select(title='Please select your filter', value="(select)", options=[])
 
-subspec_text = Div(text='''Select subspecies:''')
-subspec_widget = CheckboxGroup(name='Subspec', labels=[], active=[])
+add_filter_button = Button(label="Add more filters", button_type="primary")
+# task_text = Div(text='''Select task:''')
+# task_widget = CheckboxGroup(name='Tasks', labels=[], active=[])
 
-others_text = Div(text='''Select other options:''')
-others_widget = CheckboxGroup(name='Filters', labels=[], active=[])
+# subspec_text = Div(text='''Select subspecies:''')
+# subspec_widget = CheckboxGroup(name='Subspec', labels=[], active=[])
 
-num_text = Div(text='''Select range:''')
+# others_text = Div(text='''Select other options:''')
+# others_widget = CheckboxGroup(name='Filters', labels=[], active=[])
+
+# num_text = Div(text='''Select range:''')
 
 
 ##############################################################################
@@ -74,30 +77,30 @@ def apply_bi_filter(df, widget):
 # Output(s):
 #       df: dataframe after filtering
 ##############################################################################
-def apply_mixed_filter(df, widget):
-    selected_list = widget.active
+# def apply_mixed_filter(df, widget):
+#     selected_list = widget.active
 
-    for f in selected_list:        
-        column_name = others_widget.labels[f]             
+#     for f in selected_list:        
+#         column_name = others_widget.labels[f]             
         
-        # Check if the filter is categorical data
-        is_category = (df[column_name].dtype == 'category')
+#         # Check if the filter is categorical data
+#         is_category = (df[column_name].dtype == 'category')
 
-        if is_category:
-            f_value = []
-            for value_widget in widgets.children[1].children:
-                if value_widget.title == column_name:
-                    f_value = value_widget.value
-                    f_value = [text_2_code(column_name, x) for x in f_value]
+#         if is_category:
+#             f_value = []
+#             for value_widget in widgets.children[1].children:
+#                 if value_widget.title == column_name:
+#                     f_value = value_widget.value
+#                     # f_value = [text_2_code(column_name, x) for x in f_value]
                 
-            if f_value:
-                df = df[df[column_name].isin(f_value)]
+#             if f_value:
+#                 df = df[df[column_name].isin(f_value)]
 
-        else:
-            # df = pd.DataFrame(source_backup.data)
-            df = df[df[column_name]]    
+#         else:
+#             # df = pd.DataFrame(source_backup.data)
+#             df = df[df[column_name]]    
 
-    return df      
+#     return df      
 
 ##############################################################################
 # Input(s):
@@ -106,12 +109,12 @@ def apply_mixed_filter(df, widget):
 # Output(s):
 #       column_name: the name of the column selected/unselected
 ##############################################################################
-def find_col_from_index(short, long):
-    short = set(short)
-    column_index = [x for x in long if x not in short][0]
-    column_name = others_widget.labels[column_index]  
+# def find_col_from_index(short, long):
+#     short = set(short)
+#     column_index = [x for x in long if x not in short][0]
+#     column_name = others_widget.labels[column_index]  
 
-    return column_name
+#     return column_name
 
 # Callback for file_input
 def upload_data(attr, old, new):
@@ -133,9 +136,11 @@ def upload_data(attr, old, new):
     var_2.options = numeric_var
 
     # Update selection widget: filters
-    task_widget.labels = task_filters
-    subspec_widget.labels = subspec_filters
-    others_widget.labels = other_filters
+    filter_widget.options = other_filters
+
+    # task_widget.labels = task_filters
+    # subspec_widget.labels = subspec_filters
+    # others_widget.labels = other_filters
 
     # Update source data, source_backup is created for reselection purpose
     source.data = df
@@ -156,12 +161,12 @@ def update_plot():
 
         selected = pd.DataFrame(source_backup.data)
 
-        # Apply filter for task
-        selected = apply_bi_filter(selected, task_widget)
-        # Apply filter for subspecies
-        selected = apply_bi_filter(selected, subspec_widget)
-        # Apply filter for others
-        selected = apply_mixed_filter(selected, others_widget)
+        # # Apply filter for task
+        # selected = apply_bi_filter(selected, task_widget)
+        # # Apply filter for subspecies
+        # selected = apply_bi_filter(selected, subspec_widget)
+        # # Apply filter for others
+        # selected = apply_mixed_filter(selected, others_widget)
 
         # Set x and y range, labels, function plot_settings in funcs.py
         plot_settings(plot, selected, plot_var_1, plot_var_2)
@@ -178,43 +183,83 @@ def update_plot():
 #       attr
 #       old: includes all values in argument 'active' in 'others_widget' CheckBox before checking, values are indices of selected filters, e.g. [0, 1]
 #       new: includes all values in argument 'active' in 'others_widget' CheckBox after checking, values are indices of selected filters, e.g. [0, 1, 2]
-def update_filter(attr, old, new):
+# def update_filter(attr, old, new):
 
 
-    # if add a filter
-    if len(new) > len(old):
-        # Find the selected filter
-        column_name = find_col_from_index(old, new)
+    # # if add a filter
+    # if len(new) > len(old):
+    #     # Find the selected filter
+    #     column_name = find_col_from_index(old, new)
 
-        # Only make changes when dealing with categorical data
-        is_category = (source.data[column_name].dtype == 'category')
-        if is_category:
+    #     # Only make changes when dealing with categorical data
+    #     is_category = (source.data[column_name].dtype == 'category')
+    #     if is_category:
         
-            df = pd.DataFrame(source_backup.data)
-            options = df[column_name]
-            options = list(map(str, list(set(options.tolist()))))
-            options = [code_2_text(column_name, x) for x in options]
+    #         df = pd.DataFrame(source_backup.data)
+    #         options = df[column_name]
+    #         options = list(map(str, list(set(options.tolist()))))
+    #         # options = [code_2_text(column_name, x) for x in options]
 
-            selectable_values = MultiChoice(title=column_name, value=[], options=options)
-            widgets.children[1].children.insert(0, selectable_values)
+    #         selectable_values = MultiChoice(title=column_name, value=[], options=options)
+    #         widgets.children[1].children.insert(0, selectable_values)
                             
-        # if unselect/remove a filter
-    else:
-        # Find the unselected/removed filter
-        column_name = find_col_from_index(new, old)
+    #     # if unselect/remove a filter
+    # else:
+    #     # Find the unselected/removed filter
+    #     column_name = find_col_from_index(new, old)
 
-        # Only make changes when dealing with categorical data
-        is_category = (source.data[column_name].dtype == 'category')
-        if is_category:
+    #     # Only make changes when dealing with categorical data
+    #     is_category = (source.data[column_name].dtype == 'category')
+    #     if is_category:
             
-            # Delete the unselected/removed filter widget
-            for value_widget in widgets.children[1].children:
-                if value_widget.title == column_name:
-                    widgets.children[1].children.remove(value_widget)
+    #         # Delete the unselected/removed filter widget
+    #         for value_widget in widgets.children[1].children:
+    #             if value_widget.title == column_name:
+    #                 widgets.children[1].children.remove(value_widget)
+def edit_button(button, label, type):
+    button.label = label
+    button.button_type = type
+
+
+
+def add_more_filters():
+    total_options = filter_widget.options
+    selected_options = []
+    is_first_value_selected = (filter_widget.value != '(select)')
+    if is_first_value_selected:
+        selected_options.append(filter_widget.value)
+    
+    is_other_value_selected = True
+    if additional_filter_widget.children != []:
+        is_other_value_selected = (additional_filter_widget.children[0].value != '(select)')
+    for c in additional_filter_widget.children:
+        selected_options.append(c.value)
+
+    if ((not is_first_value_selected) or (not is_other_value_selected)):
+        edit_button(add_filter_button, "Please select your last filter!", "danger")
+    else:
+        edit_button(add_filter_button, "Add more filters", "primary")
+
+        new_option_list = list(set(total_options)-set(selected_options))
+        if new_option_list == ['(select)']:
+            edit_button(add_filter_button, "No more filters", "danger")
+        else:
+            new_filter_widget = Select(title='Please select your filter', value="(select)", options=new_option_list)
+
+            additional_filter_widget.children.insert(0, row(new_filter_widget))
+
+# def add_filter_value():
+    # selected_filter = filter_widget.value
+    # filter_value = Select(title=selected_filter, value="")
+    # first_filter_widget.children.insert(-1, )
+
 
 
 file_input.on_change('value', upload_data)
-others_widget.on_change('active', update_filter)
+
+filter_widget.on_change('active', add_filter_value)
+
+add_filter_button.on_click(add_more_filters)
 
 
 
@@ -224,9 +269,8 @@ button_apply = Button(label="Generate", button_type="primary")
 button_apply.on_click(update_plot)
 
 
+first_filter_widget = row(filter_widget)
+additional_filter_widget = column()
 
-widgets = row(others_widget, column())
-# widgets = row(plot_var)
-
-curdoc().add_root(column(file_input, row(var_1, var_2), row(task_text, task_widget, subspec_text, subspec_widget, others_text, widgets), button_apply, plot))
+curdoc().add_root(column(file_input, row(var_1, var_2), first_filter_widget, add_filter_button, additional_filter_widget, button_apply, plot))
 
