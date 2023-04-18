@@ -1,12 +1,13 @@
 from bokeh.io import curdoc
 from bokeh.models.widgets import FileInput
-from bokeh.models import ColumnDataSource, Button, ColorPicker, HoverTool, DateRangeSlider, MultiChoice, CheckboxGroup, Div
+from bokeh.models import ColumnDataSource, Button, ColorPicker, HoverTool, DateRangeSlider, MultiChoice, CheckboxGroup, Div, MultiSelect
 from bokeh.models.widgets import Slider, TextInput, Select
 from bokeh.layouts import column, row
 from bokeh.plotting import figure
 from bokeh.models.glyphs import Scatter
-from funcs import preprocess, plot_settings
+from funcs import preprocess, plot_settings, get_column_from_name, get_task_list, get_subspec_list, get_all_filter_list
 
+import functools
 import base64
 import io
 import pandas as pd
@@ -39,7 +40,7 @@ var_2 = Select(title="Please select var on y axis", value="(select)", options=[]
 
 
 # filter_text = Div(text='''Select filter:''')
-filter_widget = Select(title='Please select your filter', value="(select)", options=[])
+# filter_widget = Select(title='Please select your filter', value="(select)", options=[])
 
 add_filter_button = Button(label="Add more filters", button_type="primary")
 # task_text = Div(text='''Select task:''')
@@ -128,7 +129,7 @@ def upload_data(attr, old, new):
     #       df: dataframe with modified data types, 
     #       task_filters, subspec_filters, other_filters: filters to be applied (categorical and boolean data)
     #       numeric_var: data to be plotted (numerical data) 
-    df, task_filters, subspec_filters, other_filters, numeric_var = preprocess(df)
+    df, numeric_var = preprocess(df)
 
     # print(df["task_other ( specify)"][10])
     # Update selection widget: variables to plot    
@@ -136,11 +137,7 @@ def upload_data(attr, old, new):
     var_2.options = numeric_var
 
     # Update selection widget: filters
-    filter_widget.options = other_filters
-
-    # task_widget.labels = task_filters
-    # subspec_widget.labels = subspec_filters
-    # others_widget.labels = other_filters
+    # filter_widget.options = other_filters
 
     # Update source data, source_backup is created for reselection purpose
     source.data = df
@@ -223,41 +220,53 @@ def edit_button(button, label, type):
 
 
 def add_more_filters():
-    total_options = filter_widget.options
+    df = pd.DataFrame(source_backup.data)
+    total_options = get_all_filter_list(df)
+    # total_options = list(set(filter_widget.options)-set(['(select)']))
     selected_options = []
-    is_first_value_selected = (filter_widget.value != '(select)')
-    if is_first_value_selected:
-        selected_options.append(filter_widget.value)
-    
-    is_other_value_selected = True
-    if additional_filter_widget.children != []:
-        is_other_value_selected = (additional_filter_widget.children[0].value != '(select)')
-    for c in additional_filter_widget.children:
-        selected_options.append(c.value)
+    is_value_selected = True
+    for c in filter_widgets.children:
+            # print(c.children[0].value)
+            # c is a row, where the first element is the filter widget, the second element is the value widget
+            selected_options.append(c.children[0].value)
+            is_value_selected = (is_value_selected and (c.children[0].value != '(select)'))
 
-    if ((not is_first_value_selected) or (not is_other_value_selected)):
-        edit_button(add_filter_button, "Please select your last filter!", "danger")
+    if not is_value_selected:
+        edit_button(add_filter_button, "Please reselect your filter or delete!", "danger")
     else:
         edit_button(add_filter_button, "Add more filters", "primary")
-
         new_option_list = list(set(total_options)-set(selected_options))
-        if new_option_list == ['(select)']:
+        if new_option_list == []:
             edit_button(add_filter_button, "No more filters", "danger")
         else:
-            new_filter_widget = Select(title='Please select your filter', value="(select)", options=new_option_list)
+            new_filter_widget = Select(title='Please select your filter', value='(select)', options=new_option_list)
 
-            additional_filter_widget.children.insert(0, row(new_filter_widget))
+            # Insert a row, where the first element is the filter widget, the second element will be the value widget
+            filter_widgets.children.insert(0, row(new_filter_widget))
+            # new_filter_widget.on_change('value', add_filter_value)
+            new_filter_widget.on_change('value', functools.partial(add_filter_value, widget=new_filter_widget))
 
-# def add_filter_value():
-    # selected_filter = filter_widget.value
-    # filter_value = Select(title=selected_filter, value="")
-    # first_filter_widget.children.insert(-1, )
+def add_filter_value(attr, old, new, widget):
+    # print(attr)
+    # print(widget)
+    widget.options = list(set(widget.options) - set(['(select)']))
+    df = pd.DataFrame(source_backup.data)
+    if new == 'tasks':
+        options = get_task_list(df)
+    elif new == 'subspecialities':
+        options = get_subspec_list(df)
+    else:
+        options = get_column_from_name(df, new)
+    
+    filter_value_widget = MultiSelect(title=new, value=[], options=options, height=70, width=200, description='multi selectable')
+    # filter_value_widget = MultiChoice(title=new, value=[], options=options, height=50, width=200, max_width=300, max_height=50, width_policy='max', height_policy='fixed')
+    filter_widgets.children[0].children.insert(1, filter_value_widget)
 
 
 
 file_input.on_change('value', upload_data)
 
-filter_widget.on_change('active', add_filter_value)
+# filter_widget.on_change('value', add_filter_value)
 
 add_filter_button.on_click(add_more_filters)
 
@@ -269,8 +278,14 @@ button_apply = Button(label="Generate", button_type="primary")
 button_apply.on_click(update_plot)
 
 
-first_filter_widget = row(filter_widget)
-additional_filter_widget = column()
+# first_filter_widget = row(filter_widget)
+# additional_filter_widget = column()
 
-curdoc().add_root(column(file_input, row(var_1, var_2), first_filter_widget, add_filter_button, additional_filter_widget, button_apply, plot))
+filter_widgets = column()
+
+# for c in additional_filter_widget.children:
+#     print(c)
+#     c.on_change('value', add_filter_value)
+
+curdoc().add_root(column(file_input, row(var_1, var_2), add_filter_button, filter_widgets, button_apply, plot))
 

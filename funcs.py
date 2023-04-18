@@ -11,12 +11,16 @@ def is_equal_two_list(list1, list2):
     return is_same
 
 
+def get_column_from_name(df, column_name):
+    column_data = np.unique(df[column_name].tolist())
+    column_data_no_nan = [x for x in column_data if str(x) != 'nan']
+
+    return column_data_no_nan
+
 def type_conversion(df):
     columns = list(df.columns.values)
     for c in columns:
-        column_data = np.unique(df[c].tolist())
-        column_data_no_nan = [x for x in column_data if str(x) != 'nan']
-
+        column_data_no_nan = get_column_from_name(df, c)
         # if is_equal_two_list(column_data_no_nan, [0., 1.]):
         #     df = df.astype({c: bool})
         if len(column_data_no_nan) >=2 and len(column_data_no_nan) <= 7:
@@ -53,15 +57,36 @@ def preprocess(df):
     subspec_filters = [x for x in filter_values if x.startswith('subspec')]
     for f in subspec_filters:
         df = df.astype({f: 'bool'})
-    other_filters = [x for x in filter_values if (not x.startswith('task')) and (not x.startswith('subspec'))]
-    other_filters.insert(0, 'subspecialities')
-    other_filters.insert(0, 'tasks')
-    other_filters.insert(0, '(select)')
+    # other_filters = [x for x in filter_values if (not x.startswith('task')) and (not x.startswith('subspec'))]
+
+    # other_filters.insert(0, '(select)')
     numeric_var = df.select_dtypes(include=['float']).columns.tolist()
     numeric_var.insert(0, "(select)")
     
 
-    return df, task_filters, subspec_filters, other_filters, numeric_var
+    return df, numeric_var
+
+def get_all_filter_list(df):
+    filter_values = df.select_dtypes(include=['category']).columns.tolist()
+    filter_values.insert(0, 'subspecialities')
+    filter_values.insert(0, 'tasks')
+    filter_values.insert(0, "(select)")
+
+    return filter_values
+
+def get_task_list(df):
+    filter_values = df.select_dtypes(include=['bool']).columns.tolist()
+    task_filters = [x for x in filter_values if x.startswith('task')]
+    
+    return task_filters
+
+def get_subspec_list(df):
+    filter_values = df.select_dtypes(include=['bool']).columns.tolist()
+    subspec_filters = [x for x in filter_values if x.startswith('subspec')]
+
+    return subspec_filters
+
+
 
 def plot_settings(plot, selected, plot_var_1, plot_var_2):
         x = selected[plot_var_1]
