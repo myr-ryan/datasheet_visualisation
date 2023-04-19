@@ -5,8 +5,9 @@ from bokeh.models.widgets import Slider, TextInput, Select
 from bokeh.layouts import column, row
 from bokeh.plotting import figure
 from bokeh.models.glyphs import Scatter
-from funcs import preprocess, plot_settings, get_column_from_name, get_task_list, get_subspec_list, get_all_filter_list
 
+from funcs import *
+from Plot_Data import *
 import functools
 import base64
 import io
@@ -16,12 +17,14 @@ import numpy as np
 # First create an empty plot
 empty_data = {'x':[],
               'y':[]}
-source = ColumnDataSource(data=empty_data)
-source_backup = ColumnDataSource(data=empty_data)
+
+scatter_plot_data = Plot_Data(empty_data)
+# source = ColumnDataSource(data=empty_data)
+# source_backup = ColumnDataSource(data=empty_data)
 
 # x_range=source.data["Paper ID"]
 plot = figure(height=400, width=500, title='Datasheet visualization', tooltips=None)
-plot.scatter('x', 'y', source=source)
+plot.scatter('x', 'y', source=scatter_plot_data.source)
 # scatter = Scatter(x="Paper ID", y="y", marker="circle")
 # plot.add_glyph(source, scatter)
 
@@ -124,24 +127,31 @@ def upload_data(attr, old, new):
     f = io.BytesIO(decoded)
     df = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
 
+    scatter_plot_data.upload_data(df)
+    scatter_plot_data.preprocessing()
+
+    # scatter_plot_data.debug_printing()
+
     # Function 'preprocess' in file funcs.py
     # Returns:
     #       df: dataframe with modified data types, 
     #       task_filters, subspec_filters, other_filters: filters to be applied (categorical and boolean data)
     #       numeric_var: data to be plotted (numerical data) 
-    df, numeric_var = preprocess(df)
+    # df, numeric_var = preprocess(df)
 
     # print(df["task_other ( specify)"][10])
     # Update selection widget: variables to plot    
-    var_1.options = numeric_var
-    var_2.options = numeric_var
+    var_1.options = scatter_plot_data.numeric_var
+    var_2.options = scatter_plot_data.numeric_var
 
     # Update selection widget: filters
     # filter_widget.options = other_filters
 
     # Update source data, source_backup is created for reselection purpose
-    source.data = df
-    source_backup.data = df
+    
+
+    # source.data = df
+    # source_backup.data = df
     print('Dataset uploaded successfully')
 
 # Callback for button_apply
@@ -156,7 +166,7 @@ def update_plot():
         button_apply.label = "Generate"
         button_apply.button_type = "primary"
 
-        selected = pd.DataFrame(source_backup.data)
+        selected = pd.DataFrame(scatter_plot_data.source_backup.data)
 
         # # Apply filter for task
         # selected = apply_bi_filter(selected, task_widget)
@@ -169,7 +179,7 @@ def update_plot():
         plot_settings(plot, selected, plot_var_1, plot_var_2)
 
         selected = selected.rename(columns={plot_var_1: 'x', plot_var_2: 'y'})
-        source.data = selected    
+        scatter_plot_data.source.data = selected    
 
         # Create hover tool
         hover = HoverTool(tooltips=[("Paper ID", "@{Paper ID}")])
@@ -219,10 +229,28 @@ def edit_button(button, label, type):
 
 
 
+def get_rest_options(total_options, selected_options):
+    df = pd.DataFrame(scatter_plot_data.source_backup.data)
+    res = total_options
+
+    for s in selected_options:
+        to_be_deleted = []
+        to_be_deleted.append(s)
+        if s in scatter_plot_data.filter_list:       
+            for c in scatter_plot_data.get_column_from_name(df, s):
+                to_be_deleted.append(c)
+        
+        res = [x for x in res if not x in to_be_deleted]
+    
+    return res
+
+
+
 def add_more_filters():
-    df = pd.DataFrame(source_backup.data)
-    total_options = get_all_filter_list(df)
-    # total_options = list(set(filter_widget.options)-set(['(select)']))
+
+    # new_filter_widget = Select(title='Please select your filter', value='(select)', options=new_option_list)
+    # filter_value_list, value_list = get_all_value(filter_list)
+    total_options = scatter_plot_data.filter_value_list
     selected_options = []
     is_value_selected = True
     for c in filter_widgets.children:
@@ -235,16 +263,35 @@ def add_more_filters():
         edit_button(add_filter_button, "Please reselect your filter or delete!", "danger")
     else:
         edit_button(add_filter_button, "Add more filters", "primary")
-        new_option_list = list(set(total_options)-set(selected_options))
-        if new_option_list == []:
+        options = get_rest_options(total_options, selected_options)  
+        # new_option_list = list(set(total_options)-set(selected_options))
+        if options == []:
             edit_button(add_filter_button, "No more filters", "danger")
         else:
-            new_filter_widget = Select(title='Please select your filter', value='(select)', options=new_option_list)
+            new_filter_widget = Select(title='Please select your filter', value='(select)', options=options)
+            delete_button = Button(label="Delete", button_type="primary")
 
             # Insert a row, where the first element is the filter widget, the second element will be the value widget
-            filter_widgets.children.insert(0, row(new_filter_widget))
+            filter_widgets.children.insert(0, row(new_filter_widget, delete_button))
             # new_filter_widget.on_change('value', add_filter_value)
-            new_filter_widget.on_change('value', functools.partial(add_filter_value, widget=new_filter_widget))
+            new_filter_widget.on_change('value', functools.partial(remove_select, widget=new_filter_widget))
+            # delete_button.on_click(functools.partial(delte_widget_and_button, widget=new_filter_widget, button=delete_button))
+            delete_button.on_click(delete_widget_and_button)
+
+
+def delete_widget_and_button():
+    print('hello')
+
+def delete_widget_and_button(widget, button):
+    print('hello')
+    filter_widgets.children.remove(row(widget, button))
+
+
+
+def remove_select(attr, old, new, widget):
+    widget.options = [x for x in widget.options if not x in ['(select)']]
+    # widget.options = list(set(widget.options) - set(['(select)']))
+
 
 def add_filter_value(attr, old, new, widget):
     # print(attr)
