@@ -6,7 +6,6 @@ from bokeh.layouts import column, row
 from bokeh.plotting import figure
 from bokeh.models.glyphs import Scatter
 
-from funcs import *
 from Plot_Data import *
 import functools
 import base64
@@ -42,20 +41,9 @@ var_1 = Select(title="Please select var on x axis", value="(select)", options=[]
 var_2 = Select(title="Please select var on y axis", value="(select)", options=[])
 
 
-# filter_text = Div(text='''Select filter:''')
-# filter_widget = Select(title='Please select your filter', value="(select)", options=[])
+
 
 add_filter_button = Button(label="Add more filters", button_type="primary")
-# task_text = Div(text='''Select task:''')
-# task_widget = CheckboxGroup(name='Tasks', labels=[], active=[])
-
-# subspec_text = Div(text='''Select subspecies:''')
-# subspec_widget = CheckboxGroup(name='Subspec', labels=[], active=[])
-
-# others_text = Div(text='''Select other options:''')
-# others_widget = CheckboxGroup(name='Filters', labels=[], active=[])
-
-# num_text = Div(text='''Select range:''')
 
 
 ##############################################################################
@@ -73,6 +61,18 @@ def apply_bi_filter(df, widget):
         df = df[df[column_names].any(axis='columns')]
     
     return df
+
+
+
+def plot_settings(plot, selected, plot_var_1, plot_var_2):
+        x = selected[plot_var_1]
+        y = selected[plot_var_2]
+        plot.x_range.start = x.min()
+        plot.x_range.end = x.max()
+        plot.y_range.start = y.min()
+        plot.y_range.end = y.max()
+        plot.xaxis.axis_label = plot_var_1
+        plot.yaxis.axis_label = plot_var_2
 
 ##############################################################################
 # Input(s):
@@ -145,7 +145,7 @@ def upload_data(attr, old, new):
     var_2.options = scatter_plot_data.numeric_var
 
     # Update selection widget: filters
-    # filter_widget.options = other_filters
+    first_filter_widget.options = scatter_plot_data.filter_list
 
     # Update source data, source_backup is created for reselection purpose
     
@@ -153,6 +153,26 @@ def upload_data(attr, old, new):
     # source.data = df
     # source_backup.data = df
     print('Dataset uploaded successfully')
+
+def apply_filter(df):
+    # print(filter_widgets.children)
+    for c in filter_widgets.children:
+        print(scatter_plot_data.task_values)
+        print(scatter_plot_data.subspec_values)
+        print(scatter_plot_data.filter_list)
+
+        # 
+
+        selected_filter_value = c.children[0].value
+
+        if (selected_filter_value in scatter_plot_data.task_values) or (selected_filter_value in scatter_plot_data.subspec_values):
+            df = df[df[selected_filter_value].any(axis='columns')]
+        elif selected_filter_value in scatter_plot_data.value_list:
+            df = df[df[column_name].isin(f_value)]
+
+    return df
+
+
 
 # Callback for button_apply
 def update_plot():
@@ -167,6 +187,8 @@ def update_plot():
         button_apply.button_type = "primary"
 
         selected = pd.DataFrame(scatter_plot_data.source_backup.data)
+
+        # selected = apply_filter(selected)
 
         # # Apply filter for task
         # selected = apply_bi_filter(selected, task_widget)
@@ -228,29 +250,11 @@ def edit_button(button, label, type):
     button.button_type = type
 
 
-
-def get_rest_options(total_options, selected_options):
-    df = pd.DataFrame(scatter_plot_data.source_backup.data)
-    res = total_options
-
-    for s in selected_options:
-        to_be_deleted = []
-        to_be_deleted.append(s)
-        if s in scatter_plot_data.filter_list:       
-            for c in scatter_plot_data.get_column_from_name(df, s):
-                to_be_deleted.append(c)
-        
-        res = [x for x in res if not x in to_be_deleted]
-    
-    return res
-
-
-
 def add_more_filters():
 
     # new_filter_widget = Select(title='Please select your filter', value='(select)', options=new_option_list)
     # filter_value_list, value_list = get_all_value(filter_list)
-    total_options = scatter_plot_data.filter_value_list
+    total_options = scatter_plot_data.filter_list
     selected_options = []
     is_value_selected = True
     for c in filter_widgets.children:
@@ -263,7 +267,8 @@ def add_more_filters():
         edit_button(add_filter_button, "Please reselect your filter or delete!", "danger")
     else:
         edit_button(add_filter_button, "Add more filters", "primary")
-        options = get_rest_options(total_options, selected_options)  
+        # options = get_rest_options(total_options, selected_options)  
+        options = [x for x in total_options if not x in selected_options]
         # new_option_list = list(set(total_options)-set(selected_options))
         if options == []:
             edit_button(add_filter_button, "No more filters", "danger")
@@ -271,68 +276,81 @@ def add_more_filters():
             new_filter_widget = Select(title='Please select your filter', value='(select)', options=options)
             delete_button = Button(label="Delete", button_type="primary")
 
+
+            new_filter_widget.on_change('value', functools.partial(add_filter_value, widget=new_filter_widget))
+            delete_button.on_click(functools.partial(delete_widget_and_button, widget=new_filter_widget))
+
+            
             # Insert a row, where the first element is the filter widget, the second element will be the value widget
             filter_widgets.children.insert(0, row(new_filter_widget, delete_button))
-            # new_filter_widget.on_change('value', add_filter_value)
-            new_filter_widget.on_change('value', functools.partial(remove_select, widget=new_filter_widget))
-            # delete_button.on_click(functools.partial(delte_widget_and_button, widget=new_filter_widget, button=delete_button))
-            delete_button.on_click(delete_widget_and_button)
+              
+
+def get_index_from_widget_list(widget_value):
+    # print(filter_widgets.children)
+    index = -1
+    for i in range(len(filter_widgets.children)):
+        if filter_widgets.children[i].children[0].value == widget_value:
+            return i
+    print('Failed to find in the widget list')
+    return index
+
+def delete_widget_and_button(widget):
+    edit_button(add_filter_button, "Add more filters", "primary")
+    delete_index = get_index_from_widget_list(widget.value)
+    # print(filter_widgets.children[delete_index].children)
+    filter_widgets.children.remove(filter_widgets.children[delete_index])
+    # filter_widgets.children[delete_index].children.remove(filter_widgets.children[delete_index].children)
 
 
-def delete_widget_and_button():
-    print('hello')
 
-def delete_widget_and_button(widget, button):
-    print('hello')
-    filter_widgets.children.remove(row(widget, button))
-
-
-
-def remove_select(attr, old, new, widget):
-    widget.options = [x for x in widget.options if not x in ['(select)']]
+# def remove_select(attr, old, new, widget):
+#     widget.options = [x for x in widget.options if not x in ['(select)']]
     # widget.options = list(set(widget.options) - set(['(select)']))
 
 
 def add_filter_value(attr, old, new, widget):
-    # print(attr)
-    # print(widget)
     widget.options = list(set(widget.options) - set(['(select)']))
-    df = pd.DataFrame(source_backup.data)
+    edit_button(add_filter_button, "Add more filters", "primary")
+   
+    df = pd.DataFrame(scatter_plot_data.source_backup.data)
+    options=[]
     if new == 'tasks':
-        options = get_task_list(df)
+        options = scatter_plot_data.task_values
     elif new == 'subspecialities':
-        options = get_subspec_list(df)
-    else:
-        options = get_column_from_name(df, new)
+        options = scatter_plot_data.subspec_values
+    elif new != '(select)':
+        options = scatter_plot_data.get_column_from_name(df, new)
     
-    filter_value_widget = MultiSelect(title=new, value=[], options=options, height=70, width=200, description='multi selectable')
-    # filter_value_widget = MultiChoice(title=new, value=[], options=options, height=50, width=200, max_width=300, max_height=50, width_policy='max', height_policy='fixed')
-    filter_widgets.children[0].children.insert(1, filter_value_widget)
+    widget_index = get_index_from_widget_list(new)
+    if new == '(select)':
+        new = ''
+    num_of_widgets = len(filter_widgets.children[widget_index].children)
+    if num_of_widgets == 3:
+        filter_widgets.children[widget_index].children[1].title = new
+        filter_widgets.children[widget_index].children[1].options = options
+    elif num_of_widgets == 2:
+        filter_value_widget = MultiSelect(title=new, value=[], options=options, height=70, width=200, description='Multi Select')
+        filter_widgets.children[widget_index].children.insert(1, filter_value_widget)
 
 
 
 file_input.on_change('value', upload_data)
-
-# filter_widget.on_change('value', add_filter_value)
-
 add_filter_button.on_click(add_more_filters)
-
-
-
 
 # Create a button widget for filters
 button_apply = Button(label="Generate", button_type="primary")
 button_apply.on_click(update_plot)
 
+# The first filter to be applied
+first_filter_widget = Select(title='Please select your filter', value="(select)", options=[])
+first_delete_button = Button(label="Delete", button_type="primary")
+first_delete_button.on_click(functools.partial(delete_widget_and_button, widget=first_filter_widget))
+first_filter_widget.on_change('value', functools.partial(add_filter_value, widget=first_filter_widget))
 
-# first_filter_widget = row(filter_widget)
-# additional_filter_widget = column()
 
-filter_widgets = column()
+filter_widgets = column(row(first_filter_widget, first_delete_button))
 
-# for c in additional_filter_widget.children:
-#     print(c)
-#     c.on_change('value', add_filter_value)
+
 
 curdoc().add_root(column(file_input, row(var_1, var_2), add_filter_button, filter_widgets, button_apply, plot))
 

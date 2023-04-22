@@ -20,7 +20,7 @@ class Plot_Data:
 
     def get_column_from_name(self, df, column_name):
         column_data = np.unique(df[column_name].tolist())
-        column_data_no_nan = [x for x in column_data if str(x) != 'nan']
+        column_data_no_nan = [str(x) for x in column_data if str(x) != 'nan']
         return column_data_no_nan
 
 
@@ -98,8 +98,6 @@ class Plot_Data:
         self.numeric_var = df.select_dtypes(include=['float']).columns.tolist()
         self.numeric_var.insert(0, "(select)")
 
-
-    # def get_all_values(self, )
 
 
     def debug_printing(self):
