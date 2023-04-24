@@ -125,7 +125,7 @@ def upload_data(attr, old, new):
     # Read excel file into dataframe
     decoded = base64.b64decode(new)
     f = io.BytesIO(decoded)
-    df = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
+    df = pd.read_excel(f, sheet_name='Sheet1_before_combining', engine='openpyxl')
 
     scatter_plot_data.upload_data(df)
     scatter_plot_data.preprocessing()
@@ -269,6 +269,7 @@ def add_more_filters():
         edit_button(add_filter_button, "Add more filters", "primary")
         # options = get_rest_options(total_options, selected_options)  
         options = [x for x in total_options if not x in selected_options]
+        options.sort()
         # new_option_list = list(set(total_options)-set(selected_options))
         if options == []:
             edit_button(add_filter_button, "No more filters", "danger")
@@ -299,6 +300,9 @@ def delete_widget_and_button(widget):
     delete_index = get_index_from_widget_list(widget.value)
     # print(filter_widgets.children[delete_index].children)
     filter_widgets.children.remove(filter_widgets.children[delete_index])
+    for c in filter_widgets.children:
+        c.children[0].options.append(widget.value)
+        c.children[0].options.sort()
     # filter_widgets.children[delete_index].children.remove(filter_widgets.children[delete_index].children)
 
 
@@ -309,7 +313,18 @@ def delete_widget_and_button(widget):
 
 
 def add_filter_value(attr, old, new, widget):
-    widget.options = list(set(widget.options) - set(['(select)']))
+  
+   # If the filter is selected from scretch, remove the '(select)' option
+    if old != '(selected)':
+        widget.options.remove('(select)')
+    # If the selected filter changed, we need to update other filter's options as well
+    else:      
+        for c in filter_widgets.children:
+            if c.children[0] != widget:
+                c.children[0].options.remove(new)
+                c.children[0].options.append(old)
+                c.children[0].options.sort()
+
     edit_button(add_filter_button, "Add more filters", "primary")
    
     df = pd.DataFrame(scatter_plot_data.source_backup.data)

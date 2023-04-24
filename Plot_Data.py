@@ -92,6 +92,7 @@ class Plot_Data:
         self.filter_list.insert(0, 'subspecialities')
         self.filter_list.insert(0, 'tasks')
         self.filter_list.insert(0, "(select)")
+        self.filter_list.sort()
 
         self.get_value_list()
 
