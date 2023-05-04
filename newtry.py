@@ -37,7 +37,7 @@ def plot_type_creation(attr, old, new):
     layout.children[0].children.insert(3, plot.plot_spec_select_widgets)
     layout.children.insert(1, plot.plot_figure)
     
-    plot.upload_widget.on_change('value', plot.upload_data)
+    plot.upload_widget.on_change('value', plot.cb_upload)
     plot.generate_button.on_click(functools.partial(plot.update_plot, button=plot.generate_button))
 
 
