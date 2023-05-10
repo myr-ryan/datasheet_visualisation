@@ -32,20 +32,38 @@ class Plot_Data:
     def get_column_from_name(self, df, column_name):
         column_data = np.unique(df[column_name].tolist())
         column_data_no_nan = [x for x in column_data if str(x) != 'nan']
+        # If the column is the categorical data that need to be converted from brackets (e.g. ['MobileNet'] -> MobileNet)
+        if ((str(column_data_no_nan[0]).startswith('[')) and (str(column_data_no_nan[0]).endswith(']'))) or ((str(column_data_no_nan[-1]).startswith('[')) and (str(column_data_no_nan[-1]).endswith(']'))):
+            # column_data_no_nan = [list(x) for x in column_data_no_nan]
+            for i in range(len(column_data_no_nan)):
+                column_data_no_nan[i] = column_data_no_nan[i].replace('[', '')
+                column_data_no_nan[i] = column_data_no_nan[i].replace(']', '')
+                column_data_no_nan[i] = column_data_no_nan[i].replace('\'', '')
+                column_data_no_nan[i] = column_data_no_nan[i].split(', ')
+
+            # column_data_no_nan = [x.replace('[', '') for x in column_data_no_nan]
+            column_data_no_nan = np.unique([x for sublist in column_data_no_nan for x in sublist])
+            # print(column_data_no_nan)
         return column_data_no_nan
 
 
     def type_conversion(self, df):
         for c in self.column_names:
-            column_data_no_nan = self.get_column_from_name(df, c)
-            if self.is_equal_two_list(column_data_no_nan, [0., 1.]):
-                df = df.astype({c: bool})
-            elif len(column_data_no_nan) >=2 and len(column_data_no_nan) <= 7:
+            # Check if the columns are recorded as categorical type, such as ['MobileNet']
+            if (str(df[c][0]).startswith('[')) and (str(df[c][0]).endswith(']')):
                 df = df.astype({c: 'category'})
-            elif df[c].dtype == 'object':
-                df = df.astype({c: 'string'})
             else:
-                df = df.astype({c: 'float'})
+                column_data_no_nan = self.get_column_from_name(df, c)
+                if self.is_equal_two_list(column_data_no_nan, [0., 1.]):
+                    df = df.astype({c: bool})
+                elif len(column_data_no_nan) >=2 and len(column_data_no_nan) <= 7:
+                    df = df.astype({c: 'category'})
+                elif df[c].dtype == 'object':      
+                    df = df.astype({c: 'string'})
+                else:
+                    df = df.astype({c: 'float'})
+
+        # print(df.dtypes)
 
         return df
 
@@ -103,9 +121,15 @@ class Plot_Data:
         self.bool_list.insert(0, 'tasks')
 
         self.categ_list = df.select_dtypes(include=['category']).columns.tolist()
+        self.categ_list.insert(0, "(select)")
+        self.categ_list.sort()
+
         self.filter_list = self.categ_list + self.bool_list
-        self.filter_list.insert(0, "(select)")
-        self.filter_list.sort()
+        # self.filter_list.insert(0, "(select)")
+        # self.filter_list.sort()
+
+        self.bool_list.insert(0, "(select)")
+        self.bool_list.sort()
 
         # self.get_value_list()
 

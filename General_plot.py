@@ -26,12 +26,14 @@ class GeneralPlot:
     first_range_min_widget = NumericInput(value=0, low=0, high=1, title="min")
     first_range_max_widget = NumericInput(value=0, low=0, high=1, title="max")
 
-    generate_button = Button(label="Generate your plot", button_type="primary",  width=150, height=30, margin=(30, 0, 0, 5))
+    generate_button = Button(label="Generate your plot", button_type="primary",  width=150, height=30, margin=(30, 0, 0, 170))
 
     filter_widgets = column(row(first_filter_select_widget, first_filter_delete_button))
     range_selectors = column(column(row(first_range_select_widget, first_range_min_widget, first_range_max_widget), row(first_range_widget, first_range_delete_button)))
     plot_spec_select_widgets = row()
 
+    def delete_plot_specific(self):
+        self.plot_spec_select_widgets.children.clear()
 
 
     def cb_upload(self, attr, old, new):
@@ -43,8 +45,9 @@ class GeneralPlot:
         self.plot_data.upload_data(df)
         self.plot_data.preprocessing()
 
-        for w in self.plot_spec_select_widgets.children:
-            w.options = self.plot_data.numeric_var
+        # plot specific
+        # for w in self.plot_spec_select_widgets.children:
+        #     w.options = self.plot_data.numeric_var
         
         # Update the first filter widget
         self.first_filter_select_widget.options = self.plot_data.filter_list
@@ -173,10 +176,7 @@ class GeneralPlot:
             filter_value_widget = MultiSelect(title=new, value=[], options=options, height=70, width=150, description='Multi Select')
             self.filter_widgets.children[widget_index].children.insert(1, filter_value_widget)
      
-        
     
-
-    # TODO apply range slider filter
     def apply_filter(self):
         df = pd.DataFrame(self.plot_data.source_backup.data)
 
@@ -194,15 +194,34 @@ class GeneralPlot:
                     selected_filter_values = self.str_to_bool(selected_filter_values)
                     df = df[df[selected_filter].isin(selected_filter_values)]
             elif selected_filter in self.plot_data.categ_list:
-                df = df[df[selected_filter].isin(selected_filter_values)]
+                if (str(df[selected_filter][0]).startswith('[')) and (str(df[selected_filter][0]).endswith(']')):
+                    # print(str(selected_filter_values))
+                    cate_name = list(selected_filter_values)
+                    df = df[df[selected_filter].str.contains('|'.join(cate_name), regex=True, na=False)]
+                else:          
+                    df = df[df[selected_filter].isin(selected_filter_values)]
+                # print(df[selected_filter])
             else:
-                print('Selected filter %s is neither bool nor categorical data, which should not happen', selected_filter)
+                print('Selected filter %s is neither bool nor categorical data, which should not happen' % selected_filter)
+
+        for c in self.range_selectors.children:
+            selected_range = c.children[0].children[0].value
+            if selected_range == '(select)':
+                continue
+            selected_range_min = c.children[0].children[1].value
+            selected_range_max = c.children[0].children[2].value
+
+            if selected_range in self.plot_data.numeric_var:
+                df = df[df[selected_range].between(selected_range_min, selected_range_max)]
+            else:
+                print('Selected range %s is not numerical data, which should not happen' % selected_range)
 
         return df
 
-    def update_plot(self, selected):
+    def cb_generate(self, selected):
         # The rest are plot specific
-        self.plot_data.source.data = selected  
+        # print(selected)
+        self.plot_data.source.data = selected 
 
     # Update the range text inputs --- min_widget or max_widget whenever the values in range slider have been changed
     def cb_range_text(self, attr, old, new, slider, widget):
@@ -260,6 +279,23 @@ class GeneralPlot:
 
 
     def __init__(self, plot_data):
+        # if len(self.plot_spec_select_widgets.children) != 0:
+        #     print('yes')
+        #     # self.filter_widgets, self.range_selectors, self.plot_spec_select_widgets = create_new_ones()
+        #     self.first_filter_select_widget = Select(title='Please select your filter', value="(select)", options=[], width=150, height=70)
+        #     self.first_filter_delete_button = Button(label="Delete this filter", button_type="primary", width=50, height=30, margin=(40, 0, 60, 0))
+        #     self.first_range_select_widget = Select(title='Please select your variable', value="(select)", options=[], width=170, height=50)
+        #     self.first_range_widget = RangeSlider(start=0, end=1, value=(0,1), title="", width=370)
+        #     self.first_range_delete_button = Button(label="Delete this range", button_type="primary", width=50, height=30, margin=(15, 0, 0, 0))
+        #     self.first_range_min_widget = NumericInput(value=0, low=0, high=1, title="min")
+        #     self.first_range_max_widget = NumericInput(value=0, low=0, high=1, title="max")
+        #     self.filter_widgets = column(row(self.first_filter_select_widget, self.first_filter_delete_button))
+        #     self.range_selectors = column(column(row(self.first_range_select_widget, self.first_range_min_widget, self.first_range_max_widget), row(self.first_range_widget, self.first_range_delete_button)))
+        #     self.plot_spec_select_widgets = row()
+        #     # self.delete_plot_specific()
+        #     # self.filter_widgets = column(row(self.first_filter_select_widget, self.first_filter_delete_button))
+        #     # self.range_selectors = column(column(row(self.first_range_select_widget, self.first_range_min_widget, self.first_range_max_widget), row(self.first_range_widget, self.first_range_delete_button)))
+        #     # # plot_spec_select_widgets = row()
         self.plot_data = plot_data
         self.upload_widget.on_change('value', self.cb_upload)
 
@@ -270,13 +306,8 @@ class GeneralPlot:
         self.first_range_widget.on_change('value', functools.partial(self.cb_range, min_widget=self.first_range_min_widget, max_widget=self.first_range_max_widget))
         self.first_range_min_widget.on_change('value', functools.partial(self.cb_range_text, slider=self.first_range_widget, widget=self.first_range_min_widget))
         self.first_range_max_widget.on_change('value', functools.partial(self.cb_range_text, slider=self.first_range_widget, widget=self.first_range_max_widget))
-        # TODO delete range button on_click
         self.first_range_delete_button.on_click(functools.partial(self.cb_delete, w_type='ranges', add_button=self.add_range_button_widget, widget=self.first_range_select_widget))
-
-        self.add_filter_button_widget.on_click(self.cb_add_filter_button)
-        self.add_range_button_widget.on_click(self.cb_add_range_button)
-        # Create a button widget for filters
         
-        # 
-        self.generate_button.on_click(self.update_plot)
-
+        self.add_filter_button_widget.on_click(self.cb_add_filter_button)
+        self.add_range_button_widget.on_click(self.cb_add_range_button)     
+        self.generate_button.on_click(functools.partial(self.cb_generate, self.generate_button))

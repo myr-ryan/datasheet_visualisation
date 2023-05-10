@@ -24,6 +24,7 @@ class ScatterPlot(GeneralPlot):
         self.var_2_select_widget = Select(title="Please select var on y axis", value="(select)", options=[], width=245, height=50, margin=(0,0,50,0))
 
         # Update the plot specific widgets in the super class for further data processing
+        
         self.plot_spec_select_widgets.children.insert(0, self.var_2_select_widget)
         self.plot_spec_select_widgets.children.insert(0, self.var_1_select_widget)
 
@@ -40,10 +41,19 @@ class ScatterPlot(GeneralPlot):
     
 
     # @override
-    def update_plot(self, button):
+    def cb_upload(self, attr, old, new):
+        super().cb_upload(attr, old, new)
+        
+        for w in self.plot_spec_select_widgets.children:
+            w.options = self.plot_data.numeric_var
+
+    # @override
+    def cb_generate(self, button):
         # print(len(self.plot_spec_select_widgets.children))
         plot_var_1 = str(self.var_1_select_widget.value)
         plot_var_2 = str(self.var_2_select_widget.value)
+        # print(plot_var_1)
+        # print(plot_var_2)
 
         if (plot_var_1 == "(select)") or (plot_var_2 == "(select)") or (plot_var_1 == plot_var_2):
             button.label = "Please re-select variables!"
@@ -60,10 +70,12 @@ class ScatterPlot(GeneralPlot):
             self.plot_settings(selected, plot_var_1, plot_var_2)
 
             selected = selected.rename(columns={plot_var_1: 'x', plot_var_2: 'y'})
+
+            selected = selected[['x', 'y']]
               
 
             # # Create hover tool
             hover = HoverTool(tooltips=[("Paper ID", "@{Paper ID}")])
             self.plot_figure.add_tools(hover)
             
-            super().update_plot(selected)
+            super().cb_generate(selected)
