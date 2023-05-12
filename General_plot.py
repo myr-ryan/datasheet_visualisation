@@ -10,50 +10,30 @@ from General_plot_helper import *
 # Widgets and plot settings for all plots
 
 class GeneralPlot:
-    upload_text = Div(text='''Please upload your datasheet''')
-    upload_widget = FileInput(accept='.xlsx', width=500, height=40, margin=(0,0,25,0))
-    add_filter_button_widget = Button(label="Add more filters", button_type="primary", width=150, height=30)
-
-    # The first (categorical and boolean) filter
-    first_filter_select_widget = Select(title='Please select your filter', value="(select)", options=[], width=150, height=70)
-    first_filter_delete_button = Button(label="Delete this filter", button_type="primary", width=50, height=30, margin=(40, 0, 60, 0))
-
-    add_range_button_widget = Button(label="Add more ranges", button_type="primary", width=150, height=30)
-    # The first (numerical) range slider
-    first_range_select_widget = Select(title='Please select your variable', value="(select)", options=[], width=170, height=50)
-    first_range_widget = RangeSlider(start=0, end=1, value=(0,1), title="", width=370)
-    first_range_delete_button = Button(label="Delete this range", button_type="primary", width=50, height=30, margin=(15, 0, 0, 0))
-    first_range_min_widget = NumericInput(value=0, low=0, high=1, title="min")
-    first_range_max_widget = NumericInput(value=0, low=0, high=1, title="max")
-
-    generate_button = Button(label="Generate your plot", button_type="primary",  width=150, height=30, margin=(30, 0, 0, 170))
-
-    filter_widgets = column(row(first_filter_select_widget, first_filter_delete_button))
-    range_selectors = column(column(row(first_range_select_widget, first_range_min_widget, first_range_max_widget), row(first_range_widget, first_range_delete_button)))
-    plot_spec_select_widgets = row()
+    
 
     def delete_plot_specific(self):
         self.plot_spec_select_widgets.children.clear()
 
 
-    def cb_upload(self, attr, old, new):
-        # Read excel file into dataframe
-        decoded = base64.b64decode(new)
-        f = io.BytesIO(decoded)
-        df = pd.read_excel(f, sheet_name='Sheet1_before_combining', engine='openpyxl')
+    # def cb_upload(self, attr, old, new):
+    #     # Read excel file into dataframe
+    #     decoded = base64.b64decode(new)
+    #     f = io.BytesIO(decoded)
+    #     df = pd.read_excel(f, sheet_name='Sheet1_before_combining', engine='openpyxl')
 
-        self.plot_data.upload_data(df)
-        self.plot_data.preprocessing()
+    #     self.plot_data.upload_data(df)
+    #     self.plot_data.preprocessing()
 
-        # plot specific
-        # for w in self.plot_spec_select_widgets.children:
-        #     w.options = self.plot_data.numeric_var
+    #     # plot specific
+    #     # for w in self.plot_spec_select_widgets.children:
+    #     #     w.options = self.plot_data.numeric_var
         
-        # Update the first filter widget
-        self.first_filter_select_widget.options = self.plot_data.filter_list
+    #     # Update the first filter widget
+    #     self.first_filter_select_widget.options = self.plot_data.filter_list
 
-        # Update the first range slider
-        self.first_range_select_widget.options = self.plot_data.numeric_var
+    #     # Update the first range slider
+    #     self.first_range_select_widget.options = self.plot_data.numeric_var
     
     def edit_button(self, button, label, type):
         button.label = label
@@ -146,6 +126,8 @@ class GeneralPlot:
 
 
     def cb_filter_value(self, attr, old, new, widget):
+
+        
 
         # From General_plot_helper.py
         update_other_selects(old, new, widget, self.filter_widgets, w_type='filters')
@@ -279,25 +261,32 @@ class GeneralPlot:
 
 
     def __init__(self, plot_data):
-        # if len(self.plot_spec_select_widgets.children) != 0:
-        #     print('yes')
-        #     # self.filter_widgets, self.range_selectors, self.plot_spec_select_widgets = create_new_ones()
-        #     self.first_filter_select_widget = Select(title='Please select your filter', value="(select)", options=[], width=150, height=70)
-        #     self.first_filter_delete_button = Button(label="Delete this filter", button_type="primary", width=50, height=30, margin=(40, 0, 60, 0))
-        #     self.first_range_select_widget = Select(title='Please select your variable', value="(select)", options=[], width=170, height=50)
-        #     self.first_range_widget = RangeSlider(start=0, end=1, value=(0,1), title="", width=370)
-        #     self.first_range_delete_button = Button(label="Delete this range", button_type="primary", width=50, height=30, margin=(15, 0, 0, 0))
-        #     self.first_range_min_widget = NumericInput(value=0, low=0, high=1, title="min")
-        #     self.first_range_max_widget = NumericInput(value=0, low=0, high=1, title="max")
-        #     self.filter_widgets = column(row(self.first_filter_select_widget, self.first_filter_delete_button))
-        #     self.range_selectors = column(column(row(self.first_range_select_widget, self.first_range_min_widget, self.first_range_max_widget), row(self.first_range_widget, self.first_range_delete_button)))
-        #     self.plot_spec_select_widgets = row()
-        #     # self.delete_plot_specific()
-        #     # self.filter_widgets = column(row(self.first_filter_select_widget, self.first_filter_delete_button))
-        #     # self.range_selectors = column(column(row(self.first_range_select_widget, self.first_range_min_widget, self.first_range_max_widget), row(self.first_range_widget, self.first_range_delete_button)))
-        #     # # plot_spec_select_widgets = row()
         self.plot_data = plot_data
-        self.upload_widget.on_change('value', self.cb_upload)
+
+        # self.upload_text = Div(text='''Please upload your datasheet''')
+        # upload_widget = FileInput(accept='.xlsx', width=500, height=40, margin=(0,0,25,0))
+        self.add_filter_button_widget = Button(label="Add more filters", button_type="primary", width=150, height=30)
+
+        # The first (categorical and boolean) filter
+        self.first_filter_select_widget = Select(title='Please select your filter', value="(select)", options=self.plot_data.filter_list, width=150, height=70)
+        self.first_filter_delete_button = Button(label="Delete this filter", button_type="primary", width=50, height=30, margin=(40, 0, 60, 0))
+
+        self.add_range_button_widget = Button(label="Add more ranges", button_type="primary", width=150, height=30)
+        # The first (numerical) range slider
+        self.first_range_select_widget = Select(title='Please select your variable', value="(select)", options=self.plot_data.numeric_var, width=170, height=50)
+        self.first_range_widget = RangeSlider(start=0, end=1, value=(0,1), title="", width=370)
+        self.first_range_delete_button = Button(label="Delete this range", button_type="primary", width=50, height=30, margin=(15, 0, 0, 0))
+        self.first_range_min_widget = NumericInput(value=0, low=0, high=1, title="min")
+        self.first_range_max_widget = NumericInput(value=0, low=0, high=1, title="max")
+
+        self.generate_button = Button(label="Generate your plot", button_type="primary",  width=150, height=30, margin=(30, 0, 0, 170))
+
+        self.filter_widgets = column(row(self.first_filter_select_widget, self.first_filter_delete_button))
+        self.range_selectors = column(column(row(self.first_range_select_widget, self.first_range_min_widget, self.first_range_max_widget), row(self.first_range_widget, self.first_range_delete_button)))
+        self.plot_spec_select_widgets = row()
+
+        
+        # self.upload_widget.on_change('value', self.cb_upload)
 
         self.first_filter_delete_button.on_click(functools.partial(self.cb_delete, w_type='filters', add_button=self.add_filter_button_widget, widget=self.first_filter_select_widget))
         self.first_filter_select_widget.on_change('value', functools.partial(self.cb_filter_value, widget=self.first_filter_select_widget))

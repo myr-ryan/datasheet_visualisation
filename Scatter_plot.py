@@ -11,17 +11,17 @@ class ScatterPlot(GeneralPlot):
     plot_figure = figure(height=400, width=500, title='Datasheet visualization', tooltips=None)
     
 
-    def __init__(self):
-        empty_data = {'x':[],'y':[]}
+    def __init__(self, plot_data):
+        # empty_data = {'x':[],'y':[]}
 
-        scatter_plot_data = Plot_Data(empty_data)
+        # scatter_plot_data = Plot_Data(empty_data)
         
-        self.plot_figure.scatter('x', 'y', source=scatter_plot_data.source)
+        self.plot_figure.scatter('x', 'y', source=plot_data.source)
 
-        super(ScatterPlot, self).__init__(scatter_plot_data)
+        super(ScatterPlot, self).__init__(plot_data)
         # Set up widgets for variables that need to be plotted, and filters to apply
-        self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=[], width=245, height=50, margin=(0,0,50,0))
-        self.var_2_select_widget = Select(title="Please select var on y axis", value="(select)", options=[], width=245, height=50, margin=(0,0,50,0))
+        self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.plot_data.numeric_var, width=245, height=50, margin=(0,0,50,0))
+        self.var_2_select_widget = Select(title="Please select var on y axis", value="(select)", options=self.plot_data.numeric_var, width=245, height=50, margin=(0,0,50,0))
 
         # Update the plot specific widgets in the super class for further data processing
         
@@ -40,12 +40,12 @@ class ScatterPlot(GeneralPlot):
         self.plot_figure.yaxis.axis_label = plot_var_2
     
 
-    # @override
-    def cb_upload(self, attr, old, new):
-        super().cb_upload(attr, old, new)
+    # # @override
+    # def cb_upload(self, attr, old, new):
+    #     super().cb_upload(attr, old, new)
         
-        for w in self.plot_spec_select_widgets.children:
-            w.options = self.plot_data.numeric_var
+    #     for w in self.plot_spec_select_widgets.children:
+    #         w.options = self.plot_data.numeric_var
 
     # @override
     def cb_generate(self, button):

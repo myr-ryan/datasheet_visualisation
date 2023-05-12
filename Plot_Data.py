@@ -49,21 +49,31 @@ class Plot_Data:
 
     def type_conversion(self, df):
         for c in self.column_names:
-            # Check if the columns are recorded as categorical type, such as ['MobileNet']
-            if (str(df[c][0]).startswith('[')) and (str(df[c][0]).endswith(']')):
-                df = df.astype({c: 'category'})
-            else:
+            if df[c].dtype != 'datetime64[ns]':
                 column_data_no_nan = self.get_column_from_name(df, c)
-                if self.is_equal_two_list(column_data_no_nan, [0., 1.]):
-                    df = df.astype({c: bool})
-                elif len(column_data_no_nan) >=2 and len(column_data_no_nan) <= 7:
-                    df = df.astype({c: 'category'})
-                elif df[c].dtype == 'object':      
-                    df = df.astype({c: 'string'})
+                if len(column_data_no_nan) >= 2 and len(column_data_no_nan) <= 15:
+                    if self.is_equal_two_list(column_data_no_nan, [0., 1.]) or (self.is_equal_two_list(column_data_no_nan, [0, 1])):
+                        df = df.astype({c: bool})
+                    else:
+                        if 'specify' in df[c].name:
+                            df = df.astype({c: 'string'})
+                        else:
+                            df = df.astype({c: 'category'})
                 else:
-                    df = df.astype({c: 'float'})
+                    if df[c].dtype == 'object':
+                        if (str(df[c][0]).startswith('[')) and (str(df[c][0]).endswith(']')):
+                            df = df.astype({c: 'category'})
+                        else:
+                            df = df.astype({c: 'string'})          
+                    # int or float
+                    else:
+                        # if self.is_equal_two_list(column_data_no_nan, [0., 1.]) or (self.is_equal_two_list(column_data_no_nan, [0, 1])):
+                        #     df = df.astype({c: bool})
+                        # else:
+                        df = df.astype({c: 'float'})
 
-        # print(df.dtypes)
+        long_long_data = pd.DataFrame(df.dtypes)
+        print(long_long_data[0:50])
 
         return df
 
@@ -102,10 +112,9 @@ class Plot_Data:
     #             self.filter_value_list.append(v)
 
 
-
     def preprocessing(self):
         df = pd.DataFrame(self.source.data)
-        df = df.dropna(subset=list(set(self.column_names)-set(["Title", "year", "algo_neural_net"])), how='all')
+        df = df.dropna(subset=['ml_task_description'], how='all')
 
         df = self.type_conversion(df)
         self.source.data = df
