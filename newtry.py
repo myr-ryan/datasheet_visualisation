@@ -55,8 +55,6 @@ def cb_upload(attr, old, new):
         f = io.BytesIO(decoded)
         df = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
         
-        
-
         plot_data.upload_data(df)
         plot_data.preprocessing()
         

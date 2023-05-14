@@ -49,13 +49,17 @@ class Plot_Data:
 
     def type_conversion(self, df):
         for c in self.column_names:
+            
             if df[c].dtype != 'datetime64[ns]':
                 column_data_no_nan = self.get_column_from_name(df, c)
-                if len(column_data_no_nan) >= 2 and len(column_data_no_nan) <= 15:
+                if len(column_data_no_nan) == 1:
+                    if column_data_no_nan == [1] or column_data_no_nan == [1.0] or column_data_no_nan == [0] or column_data_no_nan == [0.0]:
+                        df = df.astype({c: bool})
+                elif len(column_data_no_nan) >= 2 and len(column_data_no_nan) < 15:    
                     if self.is_equal_two_list(column_data_no_nan, [0., 1.]) or (self.is_equal_two_list(column_data_no_nan, [0, 1])):
                         df = df.astype({c: bool})
                     else:
-                        if 'specify' in df[c].name:
+                        if ('specify' in df[c].name) or ('comment' in df[c].name):
                             df = df.astype({c: 'string'})
                         else:
                             df = df.astype({c: 'category'})
@@ -67,13 +71,7 @@ class Plot_Data:
                             df = df.astype({c: 'string'})          
                     # int or float
                     else:
-                        # if self.is_equal_two_list(column_data_no_nan, [0., 1.]) or (self.is_equal_two_list(column_data_no_nan, [0, 1])):
-                        #     df = df.astype({c: bool})
-                        # else:
                         df = df.astype({c: 'float'})
-
-        long_long_data = pd.DataFrame(df.dtypes)
-        print(long_long_data[0:50])
 
         return df
 
