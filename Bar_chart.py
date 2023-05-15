@@ -67,6 +67,9 @@ class BarChart(GeneralPlot):
 
             res = {'x': x_val, 'y': y_val}
 
+            # Add the results to the final dataframe
+            selected['x'] = x_val
+            selected['y'] = y_val
             self.plot_figure.x_range.factors = x_val
 
               
@@ -75,4 +78,4 @@ class BarChart(GeneralPlot):
             # hover = HoverTool(tooltips=[("Paper ID", "@{Paper ID}")])
             # self.plot_figure.add_tools(hover)
             
-            super().cb_generate(pd.DataFrame(res))
+            super().cb_generate(pd.DataFrame(selected))

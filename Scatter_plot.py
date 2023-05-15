@@ -2,6 +2,7 @@ from bokeh.models.widgets import Select
 from bokeh.layouts import row
 from bokeh.plotting import figure
 
+
 from General_plot import *
 from Plot_Data import *
 
@@ -16,7 +17,7 @@ class ScatterPlot(GeneralPlot):
 
         # scatter_plot_data = Plot_Data(empty_data)
         
-        self.plot_figure.scatter('x', 'y', source=plot_data.source)
+        self.scatter = self.plot_figure.scatter('x', 'y', source=plot_data.source)
 
         super(ScatterPlot, self).__init__(plot_data)
         # Set up widgets for variables that need to be plotted, and filters to apply
@@ -71,11 +72,30 @@ class ScatterPlot(GeneralPlot):
 
             selected = selected.rename(columns={plot_var_1: 'x', plot_var_2: 'y'})
 
-            selected = selected[['x', 'y']]
-              
+            # selected = selected[['x', 'y']]
 
             # # Create hover tool
             hover = HoverTool(tooltips=[("Paper ID", "@{Paper ID}")])
             self.plot_figure.add_tools(hover)
-            
+
+
+            # print(self.selected_color_stra)
             super().cb_generate(selected)
+
+            # print(selected['gender'])
+
+            # TODO color stratification
+            print(self.selected_color_stra)
+            if self.selected_color_stra != '(select)':
+                unique_data = self.plot_data.get_column_from_name(selected, self.selected_color_stra)
+                # unique_data = selected[self.selected_color_stra].unique().tolist()
+                print(unique_data)
+                if len(unique_data) > 20:
+                    print('Too many categories')
+                else:
+                    palette = d3['Category20'][len(unique_data)]
+                    # self.scatter.glyph.fill_color = palette
+                    color_map = CategoricalColorMapper(factors=unique_data, palette=palette)
+                    # # self.scatter.fill_color = palette
+                    self.scatter.glyph.fill_color = {'field': self.selected_color_stra, 'transform': color_map}
+            

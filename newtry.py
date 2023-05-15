@@ -33,10 +33,11 @@ def plot_type_creation(attr, old, new, select_widget):
     # For General_plot
     # layout.children[0].children.insert(1, plot.upload_text)
     # layout.children[0].children.insert(2, plot.upload_widget)
-    layout.children[0].children.insert(3, plot.add_filter_button_widget)
-    layout.children[0].children.insert(4, plot.filter_widgets)
-    layout.children[0].children.insert(5, plot.add_range_button_widget)
-    layout.children[0].children.insert(6, plot.range_selectors)
+    layout.children[0].children.insert(3, plot.color_select_widget)
+    layout.children[0].children.insert(4, plot.add_filter_button_widget)
+    layout.children[0].children.insert(5, plot.filter_widgets)
+    layout.children[0].children.insert(6, plot.add_range_button_widget)
+    layout.children[0].children.insert(7, plot.range_selectors)
     layout.children[1].children.insert(0, plot.generate_button)
 
     # Plot specific

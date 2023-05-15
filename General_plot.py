@@ -6,14 +6,17 @@ import pandas as pd
 import functools
 from bokeh.layouts import column, row
 from General_plot_helper import *
+from bokeh.palettes import d3
+from bokeh.models import CategoricalColorMapper
+
 
 # Widgets and plot settings for all plots
 
 class GeneralPlot:
+    selected_color_stra = '(select)'
     
-
-    def delete_plot_specific(self):
-        self.plot_spec_select_widgets.children.clear()
+    def cb_color_select(self, attr, old, new):
+        self.selected_color_stra = new
 
 
     # def cb_upload(self, attr, old, new):
@@ -127,8 +130,6 @@ class GeneralPlot:
 
     def cb_filter_value(self, attr, old, new, widget):
 
-        
-
         # From General_plot_helper.py
         update_other_selects(old, new, widget, self.filter_widgets, w_type='filters')
 
@@ -204,6 +205,7 @@ class GeneralPlot:
         # The rest are plot specific
         # print(selected)
         self.plot_data.source.data = selected 
+        
 
     # Update the range text inputs --- min_widget or max_widget whenever the values in range slider have been changed
     def cb_range_text(self, attr, old, new, slider, widget):
@@ -263,6 +265,9 @@ class GeneralPlot:
     def __init__(self, plot_data):
         self.plot_data = plot_data
 
+
+        self.color_select_widget = Select(title='Please select the category for color stratification', value="(select)", options=self.plot_data.categ_list)
+
         # self.upload_text = Div(text='''Please upload your datasheet''')
         # upload_widget = FileInput(accept='.xlsx', width=500, height=40, margin=(0,0,25,0))
         self.add_filter_button_widget = Button(label="Add more filters", button_type="primary", width=150, height=30)
@@ -287,6 +292,8 @@ class GeneralPlot:
 
         
         # self.upload_widget.on_change('value', self.cb_upload)
+        # TODO color selection widget selection callback function
+        self.color_select_widget.on_change('value', self.cb_color_select)
 
         self.first_filter_delete_button.on_click(functools.partial(self.cb_delete, w_type='filters', add_button=self.add_filter_button_widget, widget=self.first_filter_select_widget))
         self.first_filter_select_widget.on_change('value', functools.partial(self.cb_filter_value, widget=self.first_filter_select_widget))
