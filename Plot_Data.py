@@ -99,7 +99,7 @@ class Plot_Data:
     #         # self.filter_value_list.append(f)
     #         if f == '(select)':
     #             values_with_indent = []
-    #         elif f == 'tasks':
+    #         elif f == 'task':
     #             self.value_list.append(self.task_values)
     #             values_with_indent = self.add_indent(self.task_values)          
     #         elif f == 'subspec':
@@ -142,10 +142,10 @@ class Plot_Data:
         self.task_values = [x for x in self.bool_list if x.startswith('task')]
         self.subspec_values = [x for x in self.bool_list if x.startswith('subspec')]
         self.bool_list = [x for x in self.bool_list if (not x.startswith('task')) and (not x.startswith('subspec'))]
-        self.bool_list.insert(0, 'subspec')
-        self.bool_list.insert(0, 'tasks')
 
         self.categ_list = df.select_dtypes(include=['category']).columns.tolist()
+        self.categ_list.insert(0, 'subspec')
+        self.categ_list.insert(0, 'task')
         self.categ_list.insert(0, "(select)")
         self.categ_list.sort()
 

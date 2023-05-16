@@ -80,16 +80,16 @@ class ScatterPlot(GeneralPlot):
 
 
             # print(self.selected_color_stra)
-            super().cb_generate(selected)
+            # super().cb_generate(selected)
 
             # print(selected['gender'])
+            self.plot_data.source.data = selected 
 
-            # TODO color stratification
-            print(self.selected_color_stra)
+            # print(self.selected_color_stra)
             if self.selected_color_stra != '(select)':
                 unique_data = self.plot_data.get_column_from_name(selected, self.selected_color_stra)
-                # unique_data = selected[self.selected_color_stra].unique().tolist()
                 print(unique_data)
+                # unique_data = selected[self.selected_color_stra].unique().tolist()
                 if len(unique_data) > 20:
                     print('Too many categories')
                 else:

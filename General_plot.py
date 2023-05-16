@@ -137,7 +137,7 @@ class GeneralPlot:
     
         df = pd.DataFrame(self.plot_data.source_backup.data)
         options=[]
-        if new == 'tasks':
+        if new == 'task':
             options = self.plot_data.task_values
         elif new == 'subspec':
             options = self.plot_data.subspec_values
@@ -170,14 +170,13 @@ class GeneralPlot:
                 continue
             selected_filter_values = c.children[1].value
             
-            if selected_filter in self.plot_data.bool_list:
-                if (selected_filter == 'tasks') or (selected_filter == 'subspec'):
-                    df = df[df[selected_filter_values].any(axis='columns')]
-                else:
-                    selected_filter_values = self.str_to_bool(selected_filter_values)
-                    df = df[df[selected_filter].isin(selected_filter_values)]
+            if selected_filter in self.plot_data.bool_list:  
+                selected_filter_values = self.str_to_bool(selected_filter_values)
+                df = df[df[selected_filter].isin(selected_filter_values)]
             elif selected_filter in self.plot_data.categ_list:
-                if (str(df[selected_filter][0]).startswith('[')) and (str(df[selected_filter][0]).endswith(']')):
+                if (selected_filter == 'task') or (selected_filter == 'subspec'):
+                    df = df[df[selected_filter_values].any(axis='columns')]
+                elif (str(df[selected_filter][0]).startswith('[')) and (str(df[selected_filter][0]).endswith(']')):
                     # print(str(selected_filter_values))
                     cate_name = list(selected_filter_values)
                     df = df[df[selected_filter].str.contains('|'.join(cate_name), regex=True, na=False)]
@@ -204,7 +203,8 @@ class GeneralPlot:
     def cb_generate(self, selected):
         # The rest are plot specific
         # print(selected)
-        self.plot_data.source.data = selected 
+        # self.plot_data.source.data = selected 
+        pass
         
 
     # Update the range text inputs --- min_widget or max_widget whenever the values in range slider have been changed
@@ -264,7 +264,6 @@ class GeneralPlot:
 
     def __init__(self, plot_data):
         self.plot_data = plot_data
-
 
         self.color_select_widget = Select(title='Please select the category for color stratification', value="(select)", options=self.plot_data.categ_list)
 
