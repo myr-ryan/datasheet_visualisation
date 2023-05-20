@@ -7,7 +7,7 @@ class Plot_Data:
     # Class variables
     column_names = []
     filter_list = []
-    value_list = []
+    # value_list = []
     # filter_value_list = []
     task_values = []
     subspec_values = []
@@ -30,21 +30,28 @@ class Plot_Data:
         return is_same
 
     def get_column_from_name(self, df, column_name):
-        column_data = np.unique(df[column_name].tolist())
-        column_data_no_nan = [x for x in column_data if str(x) != 'nan']
-        # If the column is the categorical data that need to be converted from brackets (e.g. ['MobileNet'] -> MobileNet)
-        if ((str(column_data_no_nan[0]).startswith('[')) and (str(column_data_no_nan[0]).endswith(']'))) or ((str(column_data_no_nan[-1]).startswith('[')) and (str(column_data_no_nan[-1]).endswith(']'))):
-            # column_data_no_nan = [list(x) for x in column_data_no_nan]
-            for i in range(len(column_data_no_nan)):
-                column_data_no_nan[i] = column_data_no_nan[i].replace('[', '')
-                column_data_no_nan[i] = column_data_no_nan[i].replace(']', '')
-                column_data_no_nan[i] = column_data_no_nan[i].replace('\'', '')
-                column_data_no_nan[i] = column_data_no_nan[i].split(', ')
+        if column_name == 'task':
+            return self.task_values
+        elif column_name == 'subspec':
+            return self.subspec_values
+        else:
+            column_data = np.unique(df[column_name].tolist())
+            column_data_no_nan = [x for x in column_data if str(x) != 'nan']
+            # If the column is the categorical data that need to be converted from brackets (e.g. ['MobileNet'] -> MobileNet)
+            if ((str(column_data_no_nan[0]).startswith('[')) and (str(column_data_no_nan[0]).endswith(']'))) or ((str(column_data_no_nan[-1]).startswith('[')) and (str(column_data_no_nan[-1]).endswith(']'))):
+                # column_data_no_nan = [list(x) for x in column_data_no_nan]
+                for i in range(len(column_data_no_nan)):
+                    column_data_no_nan[i] = column_data_no_nan[i].replace('[', '')
+                    column_data_no_nan[i] = column_data_no_nan[i].replace(']', '')
+                    column_data_no_nan[i] = column_data_no_nan[i].replace('\'', '')
+                    column_data_no_nan[i] = column_data_no_nan[i].split(', ')
 
-            # column_data_no_nan = [x.replace('[', '') for x in column_data_no_nan]
-            column_data_no_nan = np.unique([x for sublist in column_data_no_nan for x in sublist])
-            # print(column_data_no_nan)
-        return column_data_no_nan
+                # column_data_no_nan = [x.replace('[', '') for x in column_data_no_nan]
+                return np.unique([x for sublist in column_data_no_nan for x in sublist])
+                # print(column_data_no_nan)
+            else:
+                return column_data_no_nan
+        # return column_data_no_nan
 
 
     def type_conversion(self, df):
@@ -164,12 +171,11 @@ class Plot_Data:
 
 
     def debug_printing(self):
-        # print(self.column_names)
-        print(self.filter_list)
-        # print(self.value_list)
-        print(self.bool_list)
-        # print(self.filter_value_list)
-        print(self.task_values)
-        print(self.subspec_values)
-        # print(self.numeric_var)
+        pass
+        # print('Column names are: ', self.column_names)
+        # print('Filter list (categorical + boolean): ', self.filter_list)
+        # print('Bool list: ', self.bool_list)
+        # print('Task list: ', self.task_values)
+        # print('Subspec list: ', self.subspec_values)
+        # print('Numerical list: ', self.numeric_var)
 

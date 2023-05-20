@@ -1,6 +1,7 @@
 from bokeh.models.widgets import Select
 from bokeh.layouts import row
 from bokeh.plotting import figure
+from bokeh.transform import factor_cmap
 
 
 from General_plot import *
@@ -17,7 +18,7 @@ class ScatterPlot(GeneralPlot):
 
         # scatter_plot_data = Plot_Data(empty_data)
         
-        self.scatter = self.plot_figure.scatter('x', 'y', source=plot_data.source)
+        
 
         super(ScatterPlot, self).__init__(plot_data)
         # Set up widgets for variables that need to be plotted, and filters to apply
@@ -66,7 +67,10 @@ class ScatterPlot(GeneralPlot):
             # selected = pd.DataFrame(scatter_plot_data.source_backup.data)
 
             selected = super().apply_filter()
+            
+            
 
+            
             
             self.plot_settings(selected, plot_var_1, plot_var_2)
 
@@ -87,15 +91,35 @@ class ScatterPlot(GeneralPlot):
 
             # print(self.selected_color_stra)
             if self.selected_color_stra != '(select)':
+                if self.selected_color_stra == 'task' or 'subspec':
+                    # Make task or subspec columns categorical data, and attached to the selected dataframe, 
+                    # note that there could be multiple tasks or subspecs in a single paper. So left join was used
+                    list_name = self.selected_color_stra + '_values'
+                    # print(list_name)
+                    cols_to_cat = selected.loc[:, getattr(self.plot_data, list_name)]
+                    cols_to_cat = pd.DataFrame({self.selected_color_stra: cols_to_cat.columns[np.where(cols_to_cat)[1]]}, np.where(cols_to_cat)[0])
+
+                    # left join by default
+                    selected = cols_to_cat.join(selected)
+                else:
+                    pass
                 unique_data = self.plot_data.get_column_from_name(selected, self.selected_color_stra)
-                print(unique_data)
+                # print(unique_data)
                 # unique_data = selected[self.selected_color_stra].unique().tolist()
                 if len(unique_data) > 20:
                     print('Too many categories')
                 else:
                     palette = d3['Category20'][len(unique_data)]
                     # self.scatter.glyph.fill_color = palette
-                    color_map = CategoricalColorMapper(factors=unique_data, palette=palette)
+                    # color_map = CategoricalColorMapper(factors=unique_data, palette=palette)
+                    index_cmap = factor_cmap(self.selected_color_stra, palette=palette, factors=unique_data)
                     # # self.scatter.fill_color = palette
-                    self.scatter.glyph.fill_color = {'field': self.selected_color_stra, 'transform': color_map}
+                    print(selected)
+                    print(self.selected_color_stra)
+                    # 
+
+                    self.scatter = self.plot_figure.scatter('x', 'y', legend_field=self.selected_color_stra, fill_color=index_cmap, source=selected)
+                    # self.scatter.glyph.fill_color = {'field': self.selected_color_stra, 'transform': color_map}
+            else:
+                self.scatter = self.plot_figure.scatter('x', 'y', source=selected)
             

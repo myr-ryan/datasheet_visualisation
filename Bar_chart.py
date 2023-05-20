@@ -1,6 +1,7 @@
 from bokeh.plotting import figure
 from bokeh.models.widgets import Select
 from bokeh.models import FactorRange
+from math import pi
 
 from General_plot import *
 from Plot_Data import *
@@ -61,14 +62,18 @@ class BarChart(GeneralPlot):
             # selected = pd.DataFrame(scatter_plot_data.source_backup.data)
 
             selected = super().apply_filter()
-            print(selected.shape[0])
+            # print(selected.shape[0])
 
             if plot_var_1 == 'task':
-                x_val = self.plot_data.task_values
+                x_val = self.plot_data.task_values 
                 y_val = [selected[c].sum() for c in x_val]
+                # Delete 'task_'
+                x_val = [x[5:] for x in x_val]
             elif plot_var_1 == 'subspec':
                 x_val = self.plot_data.subspec_values
                 y_val = [selected[c].sum() for c in x_val]
+                # Delete 'subspec_'
+                x_val = [x[8:] for x in x_val]
             else:
                 counting = selected.groupby([plot_var_1]).size()
                 x_val = counting.index.values.tolist()
@@ -85,9 +90,10 @@ class BarChart(GeneralPlot):
 
               
 
-            # # # Create hover tool
-            # hover = HoverTool(tooltips=[("Paper ID", "@{Paper ID}")])
-            # self.plot_figure.add_tools(hover)
+            # Create hover tool
+            hover = HoverTool(tooltips=[("Number", "@{y}")])
+            self.plot_figure.add_tools(hover)
+            self.plot_figure.xaxis.major_label_orientation = pi/4
             # print(self.vbar)
             # self.vbar.stackers = plot_var_1
 

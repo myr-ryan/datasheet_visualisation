@@ -291,7 +291,7 @@ class GeneralPlot:
 
         
         # self.upload_widget.on_change('value', self.cb_upload)
-        # TODO color selection widget selection callback function
+        
         self.color_select_widget.on_change('value', self.cb_color_select)
 
         self.first_filter_delete_button.on_click(functools.partial(self.cb_delete, w_type='filters', add_button=self.add_filter_button_widget, widget=self.first_filter_select_widget))

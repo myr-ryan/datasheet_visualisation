@@ -58,6 +58,7 @@ def cb_upload(attr, old, new):
         
         plot_data.upload_data(df)
         plot_data.preprocessing()
+        # plot_data.debug_printing()
         
 
 
