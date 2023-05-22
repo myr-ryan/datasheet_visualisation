@@ -265,7 +265,7 @@ class GeneralPlot:
     def __init__(self, plot_data):
         self.plot_data = plot_data
 
-        self.color_select_widget = Select(title='Please select the category for color stratification', value="(select)", options=self.plot_data.categ_list)
+        self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.plot_data.categ_list, width=150, height=70, margin=(15, 0, 40, 0))
 
         # self.upload_text = Div(text='''Please upload your datasheet''')
         # upload_widget = FileInput(accept='.xlsx', width=500, height=40, margin=(0,0,25,0))

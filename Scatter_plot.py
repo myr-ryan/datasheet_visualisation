@@ -85,13 +85,11 @@ class ScatterPlot(GeneralPlot):
 
             # print(self.selected_color_stra)
             # super().cb_generate(selected)
-
-            # print(selected['gender'])
             self.plot_data.source.data = selected 
 
             # print(self.selected_color_stra)
             if self.selected_color_stra != '(select)':
-                if self.selected_color_stra == 'task' or 'subspec':
+                if (self.selected_color_stra == 'task') or (self.selected_color_stra == 'subspec'):
                     # Make task or subspec columns categorical data, and attached to the selected dataframe, 
                     # note that there could be multiple tasks or subspecs in a single paper. So left join was used
                     list_name = self.selected_color_stra + '_values'
@@ -117,6 +115,9 @@ class ScatterPlot(GeneralPlot):
                     # print(selected)
                     # print(self.selected_color_stra)
                     # 
+                    self.plot_figure.reset_policy = 'event_only'
+                    # TODO no reset
+                    self.plot_figure.reset.emit()
 
                     self.scatter = self.plot_figure.scatter('x', 'y', legend_field=self.selected_color_stra, fill_color=index_cmap, source=selected)
                     # self.scatter.glyph.fill_color = {'field': self.selected_color_stra, 'transform': color_map}
