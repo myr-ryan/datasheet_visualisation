@@ -114,8 +114,8 @@ class ScatterPlot(GeneralPlot):
                     # color_map = CategoricalColorMapper(factors=unique_data, palette=palette)
                     index_cmap = factor_cmap(self.selected_color_stra, palette=palette, factors=unique_data)
                     # # self.scatter.fill_color = palette
-                    print(selected)
-                    print(self.selected_color_stra)
+                    # print(selected)
+                    # print(self.selected_color_stra)
                     # 
 
                     self.scatter = self.plot_figure.scatter('x', 'y', legend_field=self.selected_color_stra, fill_color=index_cmap, source=selected)

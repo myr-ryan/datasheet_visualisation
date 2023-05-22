@@ -62,7 +62,9 @@ class Plot_Data:
                 if len(column_data_no_nan) == 1:
                     if column_data_no_nan == [1] or column_data_no_nan == [1.0] or column_data_no_nan == [0] or column_data_no_nan == [0.0]:
                         df = df.astype({c: bool})
-                elif len(column_data_no_nan) >= 2 and len(column_data_no_nan) < 15:    
+                    else:
+                        df = df.astype({c: 'string'})
+                elif len(column_data_no_nan) >= 2 and len(column_data_no_nan) < 12:    
                     if self.is_equal_two_list(column_data_no_nan, [0., 1.]) or (self.is_equal_two_list(column_data_no_nan, [0, 1])):
                         df = df.astype({c: bool})
                     else:
