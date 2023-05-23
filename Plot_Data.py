@@ -86,7 +86,7 @@ class Plot_Data:
 
 
     def upload_data(self, df):
-        self.column_names = list(df.columns.values)    
+          
         self.source.data = df
         # print(self.source.data)
         # This is a bokeh issue, it will take index in the dataframe as seperate column, which will cause issue afterwards
@@ -123,27 +123,37 @@ class Plot_Data:
     #             self.filter_value_list.append(v)
 
 
+    def bol_to_cat(self, df, new_column_name, columns):
+
+        cols_to_cat = df.loc[:, columns]
+        df.drop(columns, axis=1, inplace=True)
+        cols_to_cat = pd.DataFrame({new_column_name: cols_to_cat.columns[np.where(cols_to_cat)[1]]}, np.where(cols_to_cat)[0])  
+
+        # left join by default
+        df = cols_to_cat.join(df)
+        df.reset_index(drop=True, inplace=True)
+        
+
+        return df
+
+
+
     def preprocessing(self):
         df = pd.DataFrame(self.source.data)
         # print(df.shape[0])
         df = df.dropna(subset=['ml_task_description'], how='all')
+        df.drop(['subspec_gynonc'], axis=1, inplace=True)
+
+        self.column_names = list(df.columns.values)
         # print(df.shape[0])
         # print(df[df['raw data availability'].isna()])
         # for x in df[df['raw data availability'].isna()]:
         #     print(x)
         # print(df['raw data availability'])
 
-        df = self.type_conversion(df)
-        
+        df = self.type_conversion(df)     
 
-        # This is a bokeh issue, it will take index in the dataframe as seperate column, which will cause issue afterwards
-        self.source.data = df
-        self.source.remove('index')
-        self.source_backup.data = df
-        self.source_backup.remove('index')
-        # print(pd.DataFrame(self.source.data))
-        # print(pd.DataFrame(self.source_backup.data).columns)
-
+    
         self.bool_list = df.select_dtypes(include=['bool']).columns.tolist()
 
 
@@ -169,6 +179,20 @@ class Plot_Data:
 
         self.numeric_var = df.select_dtypes(include=['float']).columns.tolist()
         self.numeric_var.insert(0, "(select)")
+
+        # boolean columns to categorical columns
+        df = self.bol_to_cat(df, 'task', self.task_values)
+        df = self.bol_to_cat(df, 'subspec', self.subspec_values)
+        # print(df)
+
+
+        # This is a bokeh issue, it will take index in the dataframe as seperate column, which will cause issue afterwards
+        self.source.data = df
+        self.source.remove('index')
+        self.source_backup.data = df
+        self.source_backup.remove('index')
+        # print(pd.DataFrame(self.source.data))
+        # print(pd.DataFrame(self.source_backup.data).columns)
 
 
 

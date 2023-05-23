@@ -89,6 +89,7 @@ class ScatterPlot(GeneralPlot):
 
             # print(self.selected_color_stra)
             if self.selected_color_stra != '(select)':
+                # TODO Can move to super class
                 if (self.selected_color_stra == 'task') or (self.selected_color_stra == 'subspec'):
                     # Make task or subspec columns categorical data, and attached to the selected dataframe, 
                     # note that there could be multiple tasks or subspecs in a single paper. So left join was used

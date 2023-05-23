@@ -64,22 +64,23 @@ class BarChart(GeneralPlot):
             selected = super().apply_filter()
             # print(selected.shape[0])
 
-            if plot_var_1 == 'task':
-                x_val = self.plot_data.task_values 
-                y_val = [selected[c].sum() for c in x_val]
-                # Delete 'task_'
-                x_val = [x[5:] for x in x_val]
-            elif plot_var_1 == 'subspec':
-                x_val = self.plot_data.subspec_values
-                y_val = [selected[c].sum() for c in x_val]
-                # Delete 'subspec_'
-                x_val = [x[8:] for x in x_val]
-            else:
-                counting = selected.groupby([plot_var_1]).size()
-                x_val = counting.index.values.tolist()
-                y_val = counting.tolist()
+            # if plot_var_1 == 'task':
+            #     x_val = self.plot_data.task_values 
+            #     y_val = [selected[c].sum() for c in x_val]
+            #     # Delete 'task_'
+            #     x_val = [x[5:] for x in x_val]
+            # elif plot_var_1 == 'subspec':
+            #     x_val = self.plot_data.subspec_values
+            #     y_val = [selected[c].sum() for c in x_val]
+            #     # Delete 'subspec_'
+            #     x_val = [x[8:] for x in x_val]
+            # else:
+            counting = selected.groupby([plot_var_1]).size()
+            x_val = counting.index.values.tolist()
+            y_val = counting.tolist()
 
             res = {'x': x_val, 'y': y_val}
+            # res = pd.DataFrame(res)
             # print(x_val)
             # print(y_val)
 
@@ -100,7 +101,23 @@ class BarChart(GeneralPlot):
             # super().cb_generate(pd.DataFrame(res))
 
             if self.selected_color_stra != '(select)':
+                # # TODO Can move to super class
+                # if (self.selected_color_stra == 'task') or (self.selected_color_stra == 'subspec'):
+                #     # Make task or subspec columns categorical data, and attached to the selected dataframe, 
+                #     # note that there could be multiple tasks or subspecs in a single paper. So left join was used
+                #     list_name = self.selected_color_stra + '_values'
+                #     # print(list_name)
+                #     cols_to_cat = selected.loc[:, getattr(self.plot_data, list_name)]
+                #     cols_to_cat = pd.DataFrame({self.selected_color_stra: cols_to_cat.columns[np.where(cols_to_cat)[1]]}, np.where(cols_to_cat)[0])
+                #     # print(cols_to_cat)
+                #     # print(res)
+
+                #     # left join by default
+                #     selected = cols_to_cat.join(selected)
+                # else:
+                #     pass
                 unique_data = self.plot_data.get_column_from_name(selected, self.selected_color_stra)
+                unique_data.sort()
                 # print(unique_data)
                 # unique_data = selected[self.selected_color_stra].unique().tolist()
                 if len(unique_data) > 20:
@@ -114,14 +131,21 @@ class BarChart(GeneralPlot):
                         # print(df_stack[self.selected_color_stra][df_stack[plot_var_1] == cat].value_counts())
                         # print(selected[self.selected_color_stra][selected[plot_var_1] == cat].value_counts())
                         # print(type(selected[self.selected_color_stra][selected[plot_var_1] == cat].value_counts(sort=False)))
-                        df_stack = pd.concat([df_stack, selected[self.selected_color_stra][selected[plot_var_1] == cat].value_counts(sort=False).to_frame()], axis=1)
+                        stacked_per_task = selected[self.selected_color_stra][selected[plot_var_1] == cat].value_counts(sort=False).to_frame().sort_index()
+                        # stacked_per_task = stacked_per_task.value_counts()[stacked_per_task.my]
+                        df_stack = pd.concat([df_stack, stacked_per_task], axis=1)
 
                     df_stack = df_stack.transpose()
                     df_stack.reset_index(inplace=True, drop=True)
                     # print(pd.DataFrame(res))
                     # print(df_stack)
                     df_stack = pd.concat([pd.DataFrame(res), df_stack], axis=1)
-                    # print(df_stack)
+                    # Bokeh issue, vbar_stack will ignore entire row if first data column is NaN, so need to fill them with 0
+                    df_stack = df_stack.fillna(0)
+
+                    print(df_stack)
+                    # print(df_stack['subspec_lungca'])
+                    print(unique_data)
 
 
 
