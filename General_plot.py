@@ -262,7 +262,8 @@ class GeneralPlot:
         max_widget.high = max_value       
 
 
-    def __init__(self, plot_data):
+    def __init__(self, plot_data, layout):
+        self.layout = layout
         self.plot_data = plot_data
 
         self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.plot_data.categ_list, width=150, height=70, margin=(15, 0, 40, 0))

@@ -67,11 +67,12 @@ class Plot_Data:
                 elif len(column_data_no_nan) >= 2 and len(column_data_no_nan) < 12:    
                     if self.is_equal_two_list(column_data_no_nan, [0., 1.]) or (self.is_equal_two_list(column_data_no_nan, [0, 1])):
                         df = df.astype({c: bool})
+                    elif ('specify' in df[c].name) or ('comment' in df[c].name):                      
+                        df = df.astype({c: 'string'})
+                    elif df[c].dtype == 'int' or df[c].dtype == 'float':
+                        df = df.astype({c: 'float'})
                     else:
-                        if ('specify' in df[c].name) or ('comment' in df[c].name):
-                            df = df.astype({c: 'string'})
-                        else:
-                            df = df.astype({c: 'category'})
+                        df = df.astype({c: 'category'})
                 else:
                     if df[c].dtype == 'object':
                         if (str(df[c][0]).startswith('[')) and (str(df[c][0]).endswith(']')):
@@ -132,6 +133,7 @@ class Plot_Data:
         # left join by default
         df = cols_to_cat.join(df)
         df.reset_index(drop=True, inplace=True)
+        df = df.astype({new_column_name: 'category'})
         
 
         return df
@@ -154,35 +156,39 @@ class Plot_Data:
         df = self.type_conversion(df)     
 
     
-        self.bool_list = df.select_dtypes(include=['bool']).columns.tolist()
+        # self.bool_list = df.select_dtypes(include=['bool']).columns.tolist()
 
 
         # all_categorical_bool = df.select_dtypes(include=['category', 'bool']).columns.tolist()
         self.task_values = [x for x in self.bool_list if x.startswith('task')]
         self.subspec_values = [x for x in self.bool_list if x.startswith('subspec')]
-        self.bool_list = [x for x in self.bool_list if (not x.startswith('task')) and (not x.startswith('subspec'))]
+        # self.bool_list = [x for x in self.bool_list if (not x.startswith('task')) and (not x.startswith('subspec'))]
 
-        self.categ_list = df.select_dtypes(include=['category']).columns.tolist()
-        self.categ_list.insert(0, 'subspec')
-        self.categ_list.insert(0, 'task')
-        self.categ_list.insert(0, "(select)")
-        self.categ_list.sort()
-
-        self.filter_list = self.categ_list + self.bool_list
+        
+       
         # self.filter_list.insert(0, "(select)")
         # self.filter_list.sort()
 
-        self.bool_list.insert(0, "(select)")
-        self.bool_list.sort()
-
         # self.get_value_list()
 
-        self.numeric_var = df.select_dtypes(include=['float']).columns.tolist()
-        self.numeric_var.insert(0, "(select)")
 
         # boolean columns to categorical columns
         df = self.bol_to_cat(df, 'task', self.task_values)
         df = self.bol_to_cat(df, 'subspec', self.subspec_values)
+
+        self.categ_list = df.select_dtypes(include=['category']).columns.tolist()
+        # self.categ_list.insert(0, "(select)")
+        self.categ_list.sort()
+
+        self.bool_list = df.select_dtypes(include=['bool']).columns.tolist()
+        # self.bool_list.insert(0, "(select)")
+        self.bool_list.sort()
+
+        self.filter_list = self.categ_list + self.bool_list
+        self.filter_list.insert(0, "(select)")
+
+        self.numeric_var = df.select_dtypes(include=['float']).columns.tolist()
+        self.numeric_var.insert(0, "(select)")
         # print(df)
 
 

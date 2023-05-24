@@ -17,9 +17,9 @@ def plot_type_creation(attr, old, new, select_widget):
 
     plot = None
     if new == 'scatter':
-        plot = ScatterPlot(plot_data)
+        plot = ScatterPlot(plot_data, layout)
     elif new == 'bar chart':
-        plot = BarChart(plot_data)
+        plot = BarChart(plot_data, layout)
     else:
         print('Invalid plot type, please select again.')
 
@@ -45,7 +45,7 @@ def plot_type_creation(attr, old, new, select_widget):
 
     # Plot specific
     layout.children[0].children.insert(2, plot.plot_spec_select_widgets)
-    layout.children[1].children.insert(0, plot.plot_figure)
+    # layout.children[1].children.insert(1, plot.plot_figure)
     
     
     # print(len(layout.children[0].children))
