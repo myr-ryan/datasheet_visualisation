@@ -1,7 +1,9 @@
 from bokeh.plotting import figure
-from bokeh.models.widgets import Select
+from bokeh.models.widgets import Select, MultiSelect
 from bokeh.models import FactorRange
 from math import pi
+from collections import Counter
+import itertools as it
 
 from General_plot import *
 from Plot_Data import *
@@ -16,9 +18,13 @@ class BarChart(GeneralPlot):
         super(BarChart, self).__init__(plot_data=plot_data, layout=layout)
 
         self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.plot_data.categ_list, width=245, height=50, margin=(0,0,50,0))
+        self.var_1_select_widget.on_change('value', self.cb_var_select)
+        
+        self.cate_select_widget = MultiSelect(title="Please select categories to plot", value=[], options=[], height=70, width=150, description='Multi Select')
 
         # Update the plot specific widgets in the super class for further data processing
         self.plot_spec_select_widgets.children.insert(0, self.var_1_select_widget)
+        self.plot_spec_select_widgets.children.insert(1, self.cate_select_widget)
 
     
     # def plot_settings(self, selected, plot_var_1, x_val):
@@ -41,6 +47,15 @@ class BarChart(GeneralPlot):
             w.options = self.plot_data.categ_list
     
 
+    def cb_var_select(self, attr, old, new):
+        df = pd.DataFrame(self.plot_data.source_backup.data)
+        cate_val = list(self.plot_data.get_column_from_name(df, new))
+
+        self.cate_select_widget.options = cate_val
+        self.cate_select_widget.value = cate_val
+    
+    
+
     # @override
     def cb_generate(self, button):
 
@@ -60,11 +75,37 @@ class BarChart(GeneralPlot):
 
             selected = self.apply_filter()
             # print(selected.shape[0])
+            x_val = self.cate_select_widget.value
 
-
-            counting = selected.groupby([plot_var_1]).size()
-            x_val = counting.index.values.tolist()
-            y_val = counting.tolist()
+            if plot_var_1 in self.plot_data.brackets_list:
+                # x_val = self.plot_data.get_column_from_name(selected, plot_var_1)          
+                y_val = []
+                for x in x_val:
+                    counter = 0
+                    for l in selected[plot_var_1]:
+                        if x in str(l):
+                            counter += 1
+                    if counter == 0:
+                        x_val.remove(x)
+                    else:
+                        y_val.append(counter)
+                    
+            else:
+                y_val = []
+                deleted = []
+                for x in x_val:
+                    counter = selected[plot_var_1].tolist().count(x)
+                    if int(counter) == 0:
+                        deleted.append(x)
+                    else:
+                        y_val.append(counter)
+                # print(x_val)
+                x_val = [x for x in x_val if x not in deleted]
+                # print(y_val)
+                
+                # counting = selected.groupby([plot_var_1]).size()
+                # x_val = counting.index.values.tolist()
+                # y_val = counting.tolist()
 
             res = {'x': x_val, 'y': y_val}
 
@@ -102,5 +143,6 @@ class BarChart(GeneralPlot):
             hover = HoverTool(tooltips=[("Number", "@{y}")])
             plot_figure.add_tools(hover)
             plot_figure.xaxis.major_label_orientation = pi/4
+
 
             self.layout.children[1].children.insert(1, plot_figure)

@@ -138,11 +138,12 @@ class GeneralPlot:
     
         df = pd.DataFrame(self.plot_data.source_backup.data)
         options=[]
-        if new == 'task':
-            options = self.plot_data.task_values
-        elif new == 'subspec':
-            options = self.plot_data.subspec_values
-        elif new != '(select)':
+        # if new == 'task':
+        #     options = self.plot_data.task_values
+        # elif new == 'subspec':
+        #     options = self.plot_data.subspec_values
+        # elif new != '(select)':
+        if new != '(select)':
             options = self.plot_data.get_column_from_name(df, new)
             # Multi-select widget only takes string values as options
             options = [str(x) for x in options]
@@ -175,9 +176,9 @@ class GeneralPlot:
                 selected_filter_values = self.str_to_bool(selected_filter_values)
                 df = df[df[selected_filter].isin(selected_filter_values)]
             elif selected_filter in self.plot_data.categ_list:
-                if (selected_filter == 'task') or (selected_filter == 'subspec'):
-                    df = df[df[selected_filter_values].any(axis='columns')]
-                elif (str(df[selected_filter][0]).startswith('[')) and (str(df[selected_filter][0]).endswith(']')):
+                # if (selected_filter == 'task') or (selected_filter == 'subspec'):
+                #     df = df[df[selected_filter_values].any(axis='columns')]
+                if (str(df[selected_filter][0]).startswith('[')) and (str(df[selected_filter][0]).endswith(']')):
                     # print(str(selected_filter_values))
                     cate_name = list(selected_filter_values)
                     df = df[df[selected_filter].str.contains('|'.join(cate_name), regex=True, na=False)]

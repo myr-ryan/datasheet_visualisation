@@ -40,6 +40,7 @@ class Plot_Data:
             column_data_no_nan = [x for x in column_data if str(x) != 'nan']
             # If the column is the categorical data that need to be converted from brackets (e.g. ['MobileNet'] -> MobileNet)
             if ((str(column_data_no_nan[0]).startswith('[')) and (str(column_data_no_nan[0]).endswith(']'))) or ((str(column_data_no_nan[-1]).startswith('[')) and (str(column_data_no_nan[-1]).endswith(']'))):
+                self.brackets_list.append(column_name)
                 # column_data_no_nan = [list(x) for x in column_data_no_nan]
                 for i in range(len(column_data_no_nan)):
                     column_data_no_nan[i] = column_data_no_nan[i].replace('[', '')
