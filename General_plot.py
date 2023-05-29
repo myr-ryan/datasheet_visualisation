@@ -30,13 +30,13 @@ class GeneralPlot:
 
     #     # plot specific
     #     # for w in self.plot_spec_select_widgets.children:
-    #     #     w.options = self.plot_data.numeric_var
+    #     #     w.options = self.numeric_var_ops
         
     #     # Update the first filter widget
-    #     self.first_filter_select_widget.options = self.plot_data.filter_list
+    #     self.first_filter_select_widget.options = self.filter_list_ops
 
     #     # Update the first range slider
-    #     self.first_range_select_widget.options = self.plot_data.numeric_var
+    #     self.first_range_select_widget.options = self.numeric_var_ops
     
     def edit_button(self, button, label, type):
         button.label = label
@@ -44,7 +44,8 @@ class GeneralPlot:
 
 
     def cb_add_filter_button(self):
-        total_options = self.plot_data.filter_list
+        total_options = self.filter_list_ops
+        
         selected_options = []
         is_value_selected = True
         for c in self.filter_widgets.children:
@@ -72,7 +73,7 @@ class GeneralPlot:
                 self.filter_widgets.children.insert(0, row(new_filter_widget, new_filter_delete_button))
 
     def cb_add_range_button(self):
-        total_options = self.plot_data.numeric_var
+        total_options = self.numeric_var_ops
         selected_options = []
         is_value_selected = True
         # print(self.range_selectors.children)
@@ -193,7 +194,7 @@ class GeneralPlot:
             selected_range_min = c.children[0].children[1].value
             selected_range_max = c.children[0].children[2].value
 
-            if selected_range in self.plot_data.numeric_var:
+            if selected_range in self.numeric_var_ops:
                 df = df[df[selected_range].between(selected_range_min, selected_range_max)]
             else:
                 print('Selected range %s is not numerical data, which should not happen' % selected_range)
@@ -266,19 +267,33 @@ class GeneralPlot:
         self.layout = layout
         self.plot_data = plot_data
 
-        self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.plot_data.categ_list, width=150, height=70, margin=(15, 0, 40, 0))
+        # ops - options: meaning the list plus "(select)"
+        self.filter_list_ops = self.plot_data.filter_list
+        self.filter_list_ops.insert(0, "(select)")
+
+        self.numeric_var_ops = self.plot_data.numeric_var
+        self.numeric_var_ops.insert(0, "(select)")
+
+        self.categ_list_ops = self.plot_data.categ_list
+        self.categ_list_ops.insert(0, "(select)")
+
+
+
+
+
+        self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.categ_list_ops, width=150, height=70, margin=(15, 0, 40, 0))
 
         # self.upload_text = Div(text='''Please upload your datasheet''')
         # upload_widget = FileInput(accept='.xlsx', width=500, height=40, margin=(0,0,25,0))
         self.add_filter_button_widget = Button(label="Add more filters", button_type="primary", width=150, height=30)
 
         # The first (categorical and boolean) filter
-        self.first_filter_select_widget = Select(title='Please select your filter', value="(select)", options=self.plot_data.filter_list, width=150, height=70)
+        self.first_filter_select_widget = Select(title='Please select your filter', value="(select)", options=self.filter_list_ops, width=150, height=70)
         self.first_filter_delete_button = Button(label="Delete this filter", button_type="primary", width=50, height=30, margin=(40, 0, 60, 0))
 
         self.add_range_button_widget = Button(label="Add more ranges", button_type="primary", width=150, height=30)
         # The first (numerical) range slider
-        self.first_range_select_widget = Select(title='Please select your variable', value="(select)", options=self.plot_data.numeric_var, width=170, height=50)
+        self.first_range_select_widget = Select(title='Please select your variable', value="(select)", options=self.numeric_var_ops, width=170, height=50)
         self.first_range_widget = RangeSlider(start=0, end=1, value=(0,1), title="", width=370)
         self.first_range_delete_button = Button(label="Delete this range", button_type="primary", width=50, height=30, margin=(15, 0, 0, 0))
         self.first_range_min_widget = NumericInput(value=0, low=0, high=1, title="min")

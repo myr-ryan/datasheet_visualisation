@@ -14,6 +14,7 @@ class Plot_Data:
     numeric_var = []
     bool_list = []
     categ_list = []
+    brackets_list = []
 
 
     def __init__(self, data):
@@ -128,6 +129,7 @@ class Plot_Data:
 
         cols_to_cat = df.loc[:, columns]
         df.drop(columns, axis=1, inplace=True)
+        # print(df)
         cols_to_cat = pd.DataFrame({new_column_name: cols_to_cat.columns[np.where(cols_to_cat)[1]]}, np.where(cols_to_cat)[0])  
 
         # left join by default
@@ -142,34 +144,18 @@ class Plot_Data:
 
     def preprocessing(self):
         df = pd.DataFrame(self.source.data)
-        # print(df.shape[0])
+
         df = df.dropna(subset=['ml_task_description'], how='all')
-        df.drop(['subspec_gynonc'], axis=1, inplace=True)
 
         self.column_names = list(df.columns.values)
-        # print(df.shape[0])
-        # print(df[df['raw data availability'].isna()])
-        # for x in df[df['raw data availability'].isna()]:
-        #     print(x)
-        # print(df['raw data availability'])
 
         df = self.type_conversion(df)     
 
-    
-        # self.bool_list = df.select_dtypes(include=['bool']).columns.tolist()
+        self.bool_list = df.select_dtypes(include=['bool']).columns.tolist()
+        self.bool_list.sort()
 
-
-        # all_categorical_bool = df.select_dtypes(include=['category', 'bool']).columns.tolist()
         self.task_values = [x for x in self.bool_list if x.startswith('task')]
         self.subspec_values = [x for x in self.bool_list if x.startswith('subspec')]
-        # self.bool_list = [x for x in self.bool_list if (not x.startswith('task')) and (not x.startswith('subspec'))]
-
-        
-       
-        # self.filter_list.insert(0, "(select)")
-        # self.filter_list.sort()
-
-        # self.get_value_list()
 
 
         # boolean columns to categorical columns
@@ -177,22 +163,18 @@ class Plot_Data:
         df = self.bol_to_cat(df, 'subspec', self.subspec_values)
 
         self.categ_list = df.select_dtypes(include=['category']).columns.tolist()
-        # self.categ_list.insert(0, "(select)")
         self.categ_list.sort()
 
+        # update the boolean list
         self.bool_list = df.select_dtypes(include=['bool']).columns.tolist()
-        # self.bool_list.insert(0, "(select)")
         self.bool_list.sort()
 
         self.filter_list = self.categ_list + self.bool_list
-        self.filter_list.insert(0, "(select)")
 
         self.numeric_var = df.select_dtypes(include=['float']).columns.tolist()
-        self.numeric_var.insert(0, "(select)")
-        # print(df)
 
 
-        # This is a bokeh issue, it will take index in the dataframe as seperate column, which will cause issue afterwards
+        # Bokeh takes index in dataframe as a seperate column, which will cause issue afterwards
         self.source.data = df
         self.source.remove('index')
         self.source_backup.data = df
