@@ -10,18 +10,25 @@ from Plot_Data import *
 # Widgets and plot settings specially for scatter plot
 
 class ScatterPlot(GeneralPlot):
-    
+
+    selected_color_stra = '(select)'
     scatter = None
 
     def __init__(self, plot_data, layout):
 
         
         super(ScatterPlot, self).__init__(plot_data=plot_data, layout=layout)
+
+        self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.categ_list_ops, width=150, height=70, margin=(15, 0, 40, 0))
+        self.color_select_widget.on_change('value', self.cb_color_select)
+
+
         # Set up widgets for variables that need to be plotted, and filters to apply
         self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.plot_data.numeric_var, width=245, height=50, margin=(0,0,50,0))
         self.var_2_select_widget = Select(title="Please select var on y axis", value="(select)", options=self.plot_data.numeric_var, width=245, height=50, margin=(0,0,50,0))
 
         # Update the plot specific widgets in the super class for further data processing
+        self.layout.children[0].children.insert(3, self.color_select_widget)
         
         self.plot_spec_select_widgets.children.insert(0, self.var_2_select_widget)
         self.plot_spec_select_widgets.children.insert(0, self.var_1_select_widget)
@@ -38,12 +45,10 @@ class ScatterPlot(GeneralPlot):
         plot_figure.yaxis.axis_label = plot_var_2
     
 
-    # # @override
-    # def cb_upload(self, attr, old, new):
-    #     super().cb_upload(attr, old, new)
-        
-    #     for w in self.plot_spec_select_widgets.children:
-    #         w.options = self.plot_data.numeric_var
+
+    def cb_color_select(self, attr, old, new):
+        self.selected_color_stra = new
+
 
     # @override
     def cb_generate(self, button):
@@ -52,11 +57,8 @@ class ScatterPlot(GeneralPlot):
         if self.scatter != None:
             self.layout.children[1].children.pop(1)
 
-
         plot_var_1 = str(self.var_1_select_widget.value)
         plot_var_2 = str(self.var_2_select_widget.value)
-        # print(plot_var_1)
-        # print(plot_var_2)
 
         if (plot_var_1 == "(select)") or (plot_var_2 == "(select)") or (plot_var_1 == plot_var_2):
             button.label = "Please re-select variables!"
@@ -93,12 +95,13 @@ class ScatterPlot(GeneralPlot):
                     index_cmap = factor_cmap(self.selected_color_stra, palette=palette, factors=unique_data)
 
                     self.scatter = plot_figure.scatter('x', 'y', legend_field=self.selected_color_stra, fill_color=index_cmap, source=selected)
+                    plot_figure.legend.location = "bottom_right"
                     
             else:
                 self.scatter = plot_figure.scatter('x', 'y', source=selected)
             
             
             self.plot_settings(selected, plot_var_1, plot_var_2, plot_figure)
-            plot_figure.legend.location = "bottom_right"
+            
             self.layout.children[1].children.insert(1, plot_figure)
             

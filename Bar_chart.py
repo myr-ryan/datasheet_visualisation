@@ -9,17 +9,22 @@ from Plot_Data import *
 
 class BarChart(GeneralPlot):
 
+    selected_color_stra = '(select)'
     bar = None
 
     def __init__(self, plot_data, layout):
 
         super(BarChart, self).__init__(plot_data=plot_data, layout=layout)
 
+        self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.categ_list_ops, width=150, height=70, margin=(15, 0, 40, 0))
+        self.color_select_widget.on_change('value', self.cb_color_select)
+
         self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.categ_list_ops, width=245, height=50, margin=(0,0,50,0))
         self.var_1_select_widget.on_change('value', self.cb_var_select)
         
         self.cate_select_widget = MultiSelect(title="Please select categories to plot", value=[], options=[], height=70, width=150, description='Multi Select')
 
+        self.layout.children[0].children.insert(3, self.color_select_widget)
         # Update the plot specific widgets in the super class for further data processing
         self.plot_spec_select_widgets.children.insert(0, self.var_1_select_widget)
         self.plot_spec_select_widgets.children.insert(1, self.cate_select_widget)
@@ -52,7 +57,8 @@ class BarChart(GeneralPlot):
         self.cate_select_widget.options = cate_val
         self.cate_select_widget.value = cate_val
     
-    
+    def cb_color_select(self, attr, old, new):
+        self.selected_color_stra = new
 
     # @override
     def cb_generate(self, button):
@@ -91,6 +97,8 @@ class BarChart(GeneralPlot):
                     else:
                         y_val.append(counter)
                 
+                # print(x_val)
+                # print(y_val)
                 x_val = [x for x in x_val if x not in deleted]
                     
             else:

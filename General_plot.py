@@ -14,30 +14,7 @@ import numpy as np
 # Widgets and plot settings for all plots
 
 class GeneralPlot:
-    selected_color_stra = '(select)'
-    
-    def cb_color_select(self, attr, old, new):
-        self.selected_color_stra = new
 
-
-    # def cb_upload(self, attr, old, new):
-    #     # Read excel file into dataframe
-    #     decoded = base64.b64decode(new)
-    #     f = io.BytesIO(decoded)
-    #     df = pd.read_excel(f, sheet_name='Sheet1_before_combining', engine='openpyxl')
-
-    #     self.plot_data.upload_data(df)
-    #     self.plot_data.preprocessing()
-
-    #     # plot specific
-    #     # for w in self.plot_spec_select_widgets.children:
-    #     #     w.options = self.numeric_var_ops
-        
-    #     # Update the first filter widget
-    #     self.first_filter_select_widget.options = self.filter_list_ops
-
-    #     # Update the first range slider
-    #     self.first_range_select_widget.options = self.numeric_var_ops
     
     def edit_button(self, button, label, type):
         button.label = label
@@ -288,11 +265,6 @@ class GeneralPlot:
         self.categ_list_ops.insert(0, "(select)")
 
 
-
-
-
-        self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.categ_list_ops, width=150, height=70, margin=(15, 0, 40, 0))
-
         # self.upload_text = Div(text='''Please upload your datasheet''')
         # upload_widget = FileInput(accept='.xlsx', width=500, height=40, margin=(0,0,25,0))
         self.add_filter_button_widget = Button(label="Add more filters", button_type="primary", width=150, height=30)
@@ -318,8 +290,6 @@ class GeneralPlot:
         
         # self.upload_widget.on_change('value', self.cb_upload)
         
-        self.color_select_widget.on_change('value', self.cb_color_select)
-
         self.first_filter_delete_button.on_click(functools.partial(self.cb_delete, w_type='filters', add_button=self.add_filter_button_widget, widget=self.first_filter_select_widget))
         self.first_filter_select_widget.on_change('value', functools.partial(self.cb_filter_value, widget=self.first_filter_select_widget))
 
