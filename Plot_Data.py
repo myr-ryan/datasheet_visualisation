@@ -31,36 +31,34 @@ class Plot_Data:
         return is_same
 
     def get_column_from_name(self, df, column_name):
-        if column_name == 'task':
-            return self.task_values
-        elif column_name == 'subspec':
-            return self.subspec_values
-        else:
-            column_data = np.unique(df[column_name].tolist())
-            column_data_no_nan = [x for x in column_data if str(x) != 'nan']
-            # If the column is the categorical data that need to be converted from brackets (e.g. ['MobileNet'] -> MobileNet)
-            if ((str(column_data_no_nan[0]).startswith('[')) and (str(column_data_no_nan[0]).endswith(']'))) or ((str(column_data_no_nan[-1]).startswith('[')) and (str(column_data_no_nan[-1]).endswith(']'))):
-                self.brackets_list.append(column_name)
-                # column_data_no_nan = [list(x) for x in column_data_no_nan]
-                for i in range(len(column_data_no_nan)):
-                    column_data_no_nan[i] = column_data_no_nan[i].replace('[', '')
-                    column_data_no_nan[i] = column_data_no_nan[i].replace(']', '')
-                    column_data_no_nan[i] = column_data_no_nan[i].replace('\'', '')
-                    column_data_no_nan[i] = column_data_no_nan[i].split(', ')
 
-                # column_data_no_nan = [x.replace('[', '') for x in column_data_no_nan]
-                return np.unique([x for sublist in column_data_no_nan for x in sublist])
-                # print(column_data_no_nan)
-            else:
-                return column_data_no_nan
-        # return column_data_no_nan
+        column_data = np.unique(df[column_name].tolist())
+        column_data_no_nan = [x for x in column_data if str(x) != 'nan']
+
+        if column_name in self.brackets_list:
+
+            for i in range(len(column_data_no_nan)):
+                column_data_no_nan[i] = column_data_no_nan[i].replace('[', '')
+                column_data_no_nan[i] = column_data_no_nan[i].replace(']', '')
+                column_data_no_nan[i] = column_data_no_nan[i].replace('\'', '')
+                column_data_no_nan[i] = column_data_no_nan[i].split(', ')
+
+            return np.unique([x for sublist in column_data_no_nan for x in sublist])
+        else:
+            return column_data_no_nan
 
 
     def type_conversion(self, df):
-        for c in self.column_names:
+        # print(self.brackets_list)
+        for c in self.column_names:     
+            if c in self.brackets_list:
+                df = df.astype({c: 'category'})
             
-            if df[c].dtype != 'datetime64[ns]':
+
+            elif df[c].dtype != 'datetime64[ns]':
                 column_data_no_nan = self.get_column_from_name(df, c)
+                   
+
                 if len(column_data_no_nan) == 1:
                     if column_data_no_nan == [1] or column_data_no_nan == [1.0] or column_data_no_nan == [0] or column_data_no_nan == [0.0]:
                         df = df.astype({c: bool})
@@ -77,10 +75,7 @@ class Plot_Data:
                         df = df.astype({c: 'category'})
                 else:
                     if df[c].dtype == 'object':
-                        if (str(df[c][0]).startswith('[')) and (str(df[c][0]).endswith(']')):
-                            df = df.astype({c: 'category'})
-                        else:
-                            df = df.astype({c: 'string'})          
+                        df = df.astype({c: 'string'})          
                     # int or float
                     else:
                         df = df.astype({c: 'float'})
@@ -142,6 +137,15 @@ class Plot_Data:
         return df
 
 
+    def make_bracket_list(self, df):
+        if self.brackets_list == []:
+            for c in self.column_names:
+                column_data = np.unique(df[c].tolist())
+                column_data_no_nan = [x for x in column_data if str(x) != 'nan']
+
+                if (str(column_data_no_nan[0]).startswith('[')) and (str(column_data_no_nan[0]).endswith(']')):
+                    self.brackets_list.append(c)
+
 
     def preprocessing(self):
         df = pd.DataFrame(self.source.data)
@@ -149,6 +153,8 @@ class Plot_Data:
         df = df.dropna(subset=['ml_task_description'], how='all')
 
         self.column_names = list(df.columns.values)
+
+        self.make_bracket_list(df)
 
         df = self.type_conversion(df)     
 

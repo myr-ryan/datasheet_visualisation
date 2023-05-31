@@ -1,9 +1,7 @@
 from bokeh.plotting import figure
 from bokeh.models.widgets import Select, MultiSelect
-from bokeh.models import FactorRange
+from bokeh.models import FactorRange, LabelSet
 from math import pi
-from collections import Counter
-import itertools as it
 
 from General_plot import *
 from Plot_Data import *
@@ -17,7 +15,7 @@ class BarChart(GeneralPlot):
 
         super(BarChart, self).__init__(plot_data=plot_data, layout=layout)
 
-        self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.plot_data.categ_list, width=245, height=50, margin=(0,0,50,0))
+        self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.categ_list_ops, width=245, height=50, margin=(0,0,50,0))
         self.var_1_select_widget.on_change('value', self.cb_var_select)
         
         self.cate_select_widget = MultiSelect(title="Please select categories to plot", value=[], options=[], height=70, width=150, description='Multi Select')
@@ -59,7 +57,7 @@ class BarChart(GeneralPlot):
     # @override
     def cb_generate(self, button):
 
-        # First clear the data points
+        # First delete the plot
         if self.bar != None:
             self.layout.children[1].children.pop(1)
            
@@ -75,20 +73,25 @@ class BarChart(GeneralPlot):
 
             selected = self.apply_filter()
             # print(selected.shape[0])
+            # print(selected)
             x_val = self.cate_select_widget.value
+            # x_val = selected[plot_var_1]
 
             if plot_var_1 in self.plot_data.brackets_list:
                 # x_val = self.plot_data.get_column_from_name(selected, plot_var_1)          
                 y_val = []
+                deleted = []
                 for x in x_val:
                     counter = 0
                     for l in selected[plot_var_1]:
                         if x in str(l):
                             counter += 1
                     if counter == 0:
-                        x_val.remove(x)
+                        deleted.append(x)
                     else:
                         y_val.append(counter)
+                
+                x_val = [x for x in x_val if x not in deleted]
                     
             else:
                 y_val = []
@@ -134,15 +137,21 @@ class BarChart(GeneralPlot):
                     palette = d3['Category20'][len(unique_data)]
                     
                     self.bar = plot_figure.vbar_stack(stackers=unique_data, x='x', width=0.5, color=palette, source=df_stack, legend_label=unique_data)
+                    labels = LabelSet(x='x', y='y', text='y', x_offset=5, y_offset=5, source=ColumnDataSource(data=df_stack), text_align='right', text_font_size='11px')
                     
             else:
                 self.bar = plot_figure.vbar(x='x', top='y', width=0.5, source=pd.DataFrame(res))
+                labels = LabelSet(x='x', y='y', text='y', x_offset=5, y_offset=5, source=ColumnDataSource(data=res), text_align='right', text_font_size='11px')
+
             
                                   
              # Create hover tool
             hover = HoverTool(tooltips=[("Number", "@{y}")])
             plot_figure.add_tools(hover)
             plot_figure.xaxis.major_label_orientation = pi/4
+            plot_figure.add_layout(labels)
+
+            
 
 
             self.layout.children[1].children.insert(1, plot_figure)

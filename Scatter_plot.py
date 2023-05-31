@@ -27,15 +27,15 @@ class ScatterPlot(GeneralPlot):
         self.plot_spec_select_widgets.children.insert(0, self.var_1_select_widget)
 
 
-    def plot_settings(self, selected, plot_var_1, plot_var_2):
-        x = selected[plot_var_1]
-        y = selected[plot_var_2]
-        self.plot_figure.x_range.start = x.min()
-        self.plot_figure.x_range.end = x.max()
-        self.plot_figure.y_range.start = y.min()
-        self.plot_figure.y_range.end = y.max()
-        self.plot_figure.xaxis.axis_label = plot_var_1
-        self.plot_figure.yaxis.axis_label = plot_var_2
+    def plot_settings(self, selected, plot_var_1, plot_var_2, plot_figure):
+        # x = selected['x']
+        # y = selected['y']
+        # plot_figure.x_range.start = x.min()
+        # plot_figure.x_range.end = x.max()
+        # plot_figure.y_range.start = y.min()
+        # plot_figure.y_range.end = y.max()
+        plot_figure.xaxis.axis_label = plot_var_1
+        plot_figure.yaxis.axis_label = plot_var_2
     
 
     # # @override
@@ -47,7 +47,8 @@ class ScatterPlot(GeneralPlot):
 
     # @override
     def cb_generate(self, button):
-        # First clear the data points
+
+        # First delete the plot
         if self.scatter != None:
             self.layout.children[1].children.pop(1)
 
@@ -67,9 +68,6 @@ class ScatterPlot(GeneralPlot):
 
             selected = self.apply_filter()
                     
-            
-            # self.plot_settings(selected, plot_var_1, plot_var_2)
-
             selected = selected.rename(columns={plot_var_1: 'x', plot_var_2: 'y'})
 
 
@@ -88,16 +86,19 @@ class ScatterPlot(GeneralPlot):
  
                 unique_data = self.plot_data.get_column_from_name(selected, self.selected_color_stra)
 
-                if len(unique_data) > 20:
+                if len(unique_data) > 10:
                     print('Too many categories')
                 else:
-                    palette = d3['Category20'][len(unique_data)]
+                    palette = d3['Category10'][len(unique_data)]
                     index_cmap = factor_cmap(self.selected_color_stra, palette=palette, factors=unique_data)
 
                     self.scatter = plot_figure.scatter('x', 'y', legend_field=self.selected_color_stra, fill_color=index_cmap, source=selected)
+                    
             else:
                 self.scatter = plot_figure.scatter('x', 'y', source=selected)
             
             
+            self.plot_settings(selected, plot_var_1, plot_var_2, plot_figure)
+            plot_figure.legend.location = "bottom_right"
             self.layout.children[1].children.insert(1, plot_figure)
             

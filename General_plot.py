@@ -8,6 +8,7 @@ from bokeh.layouts import column, row
 from General_plot_helper import *
 from bokeh.palettes import d3
 from bokeh.models import CategoricalColorMapper
+import numpy as np
 
 
 # Widgets and plot settings for all plots
@@ -167,24 +168,32 @@ class GeneralPlot:
 
         # print(filter_widgets.children)
         for c in self.filter_widgets.children:
+            # print('haha')
             selected_filter = c.children[0].value
             if selected_filter == '(select)':
                 continue
             selected_filter_values = c.children[1].value
             
             if selected_filter in self.plot_data.bool_list:  
+                # print('hello3?') 
                 selected_filter_values = self.str_to_bool(selected_filter_values)
                 df = df[df[selected_filter].isin(selected_filter_values)]
             elif selected_filter in self.plot_data.categ_list:
+                # print(selected_filter) 
+                # print(selected_filter_values)
                 # if (selected_filter == 'task') or (selected_filter == 'subspec'):
                 #     df = df[df[selected_filter_values].any(axis='columns')]
-                if (str(df[selected_filter][0]).startswith('[')) and (str(df[selected_filter][0]).endswith(']')):
+                # if (str(df[selected_filter][0]).startswith('[')) and (str(df[selected_filter][0]).endswith(']')):
+                if df[selected_filter].str.contains('\[').any() and df[selected_filter].str.contains('\]').any():
+                    # print('hello4?')
                     # print(str(selected_filter_values))
                     cate_name = list(selected_filter_values)
                     df = df[df[selected_filter].str.contains('|'.join(cate_name), regex=True, na=False)]
-                else:          
+                else:    
+                    # print('hello2?')      
                     df = df[df[selected_filter].isin(selected_filter_values)]
-                # print(df[selected_filter])
+                # print(np.unique(df[selected_filter].tolist()))
+                # print(df)
             else:
                 print('Selected filter %s is neither bool nor categorical data, which should not happen' % selected_filter)
 

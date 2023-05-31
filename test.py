@@ -3,6 +3,21 @@ from Plot_Data import *
 
 class TestData(unittest.TestCase):
 
+    def test_list_in_plotdata(self):
+        empty_data = {'x':[],'y':[]}
+        plot_data = Plot_Data(empty_data)
+
+        # The link for excel should be customized
+        f = '/Users/ryanma/Library/CloudStorage/OneDrive-King\'sCollegeLondon/kings/Datasheet.xlsx'
+        df_temp = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
+        plot_data.upload_data(df_temp)
+        plot_data.preprocessing()
+        # print(plot_data.brackets_list)
+
+        self.assertEqual(plot_data.brackets_list, ['data augmentation techniques', 'explainability', 'balanced_techniques', 'pretrained dataset', 'neural network type', 
+                                                   'data collection technology', 'authors', 'author_affils', 'keywords', 'mesh_terms', 'references_pmids', 
+                                                   'affil_countries', 'affil_countries_unique', 'countries_lc'])
+
     
     def test_data_type(self):
 
@@ -24,12 +39,13 @@ class TestData(unittest.TestCase):
         self.assertEqual(df['ml_task_description'].dtypes, 'category')
         self.assertEqual(df['patient_num'].dtypes, 'float')
         self.assertEqual(df['image_type'].dtypes, 'category')
+        self.assertEqual(df['data augmentation'].dtypes, 'bool')
+        self.assertEqual(df['data augmentation techniques'].dtypes, 'category')
         self.assertEqual(df['data_size_all'].dtypes, 'float')
         self.assertEqual(df['data_size_validation'].dtypes, 'float')
         self.assertEqual(df['data_size_testing'].dtypes, 'float')
         self.assertEqual(df['data_size_training'].dtypes, 'float')
-        # TODO
-        self.assertEqual(df['explainability'].dtypes, 'string')
+        self.assertEqual(df['explainability'].dtypes, 'category')
         self.assertEqual(df['balanced'].dtypes, 'bool')
         self.assertEqual(df['balanced_comment'].dtypes, 'string')
         self.assertEqual(df['bias'].dtypes, 'string')
@@ -85,8 +101,8 @@ class TestData(unittest.TestCase):
         self.assertEqual(df['authors'].dtypes, 'category')
         self.assertEqual(df['author_affils'].dtypes, 'category')
         self.assertEqual(df['keywords'].dtypes, 'category')
-        self.assertEqual(df['mesh_terms'].dtypes, 'string')
-        self.assertEqual(df['references_pmids'].dtypes, 'string')
+        self.assertEqual(df['mesh_terms'].dtypes, 'category')
+        self.assertEqual(df['references_pmids'].dtypes, 'category')
         self.assertEqual(df['feature'].dtypes, 'string')
         self.assertEqual(df['include'].dtypes, 'bool')
         self.assertEqual(df['mature'].dtypes, 'bool')
