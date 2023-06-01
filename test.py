@@ -41,6 +41,7 @@ class TestData(unittest.TestCase):
         self.assertEqual(df['image_type'].dtypes, 'category')
         self.assertEqual(df['data augmentation'].dtypes, 'bool')
         self.assertEqual(df['data augmentation techniques'].dtypes, 'category')
+        self.assertEqual(df['data_size_augmented'].dtypes, 'bool')
         self.assertEqual(df['data_size_all'].dtypes, 'float')
         self.assertEqual(df['data_size_validation'].dtypes, 'float')
         self.assertEqual(df['data_size_testing'].dtypes, 'float')

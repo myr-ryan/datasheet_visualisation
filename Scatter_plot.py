@@ -1,5 +1,4 @@
 from bokeh.models.widgets import Select
-from bokeh.models import ColumnDataSource
 from bokeh.layouts import row
 from bokeh.plotting import figure
 from bokeh.transform import factor_cmap
@@ -19,9 +18,8 @@ class ScatterPlot(GeneralPlot):
         
         super(ScatterPlot, self).__init__(plot_data=plot_data, layout=layout)
 
-        self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.categ_list_ops, width=150, height=70, margin=(15, 0, 40, 0))
+        self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.categ_list_ops, width=245, height=70, margin=(15, 0, 40, 0))
         self.color_select_widget.on_change('value', self.cb_color_select)
-
 
         # Set up widgets for variables that need to be plotted, and filters to apply
         self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.plot_data.numeric_var, width=245, height=50, margin=(0,0,50,0))
@@ -48,6 +46,13 @@ class ScatterPlot(GeneralPlot):
 
     def cb_color_select(self, attr, old, new):
         self.selected_color_stra = new
+
+        # df = self.plot_data.source_backup.data
+
+        # unique_data = self.plot_data.get_column_from_name(df, self.selected_color_stra)
+
+        # self.color_mul_select_widget.value = unique_data
+        # self.color_mul_select_widget.options = unique_data
 
 
     # @override
@@ -88,20 +93,28 @@ class ScatterPlot(GeneralPlot):
  
                 unique_data = self.plot_data.get_column_from_name(selected, self.selected_color_stra)
 
-                if len(unique_data) > 10:
-                    print('Too many categories')
+                if len(unique_data) <=2:
+                    button.label = "Too few categories! (need to >=3)"
+                    button.button_type = "danger"
+                    self.scatter = None
+                elif len(unique_data) > 10:
+                    button.label = "Too many categories! Please apply filter!"
+                    button.button_type = "danger"
+                    self.scatter = None
                 else:
                     palette = d3['Category10'][len(unique_data)]
+                    
                     index_cmap = factor_cmap(self.selected_color_stra, palette=palette, factors=unique_data)
 
                     self.scatter = plot_figure.scatter('x', 'y', legend_field=self.selected_color_stra, fill_color=index_cmap, source=selected)
                     plot_figure.legend.location = "bottom_right"
+                    self.plot_settings(selected, plot_var_1, plot_var_2, plot_figure) 
+                    self.layout.children[1].children.insert(1, plot_figure)
                     
             else:
                 self.scatter = plot_figure.scatter('x', 'y', source=selected)
             
             
-            self.plot_settings(selected, plot_var_1, plot_var_2, plot_figure)
-            
-            self.layout.children[1].children.insert(1, plot_figure)
+                self.plot_settings(selected, plot_var_1, plot_var_2, plot_figure) 
+                self.layout.children[1].children.insert(1, plot_figure)
             

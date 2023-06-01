@@ -128,8 +128,15 @@ class BarChart(GeneralPlot):
                 unique_data.sort()
                 # print(unique_data)
                 # unique_data = selected[self.selected_color_stra].unique().tolist()
-                if len(unique_data) > 20:
-                    print('Too many categories')
+
+                if len(unique_data) <=2:
+                    button.label = "Too few categories! (need to >=3)"
+                    button.button_type = "danger"
+                    self.bar = None
+                elif len(unique_data) > 10:
+                    button.label = "Too many categories! Please apply filter!"
+                    button.button_type = "danger"
+                    self.bar = None     
                 else: 
                     df_stack = pd.DataFrame([])
                     for cat in x_val:                  
@@ -142,24 +149,25 @@ class BarChart(GeneralPlot):
                     # Bokeh issue, vbar_stack will ignore entire row if first data column is NaN, so need to fill them with 0
                     df_stack = df_stack.fillna(0)
 
-                    palette = d3['Category20'][len(unique_data)]
+                    palette = d3['Category10'][len(unique_data)]
                     
                     self.bar = plot_figure.vbar_stack(stackers=unique_data, x='x', width=0.5, color=palette, source=df_stack, legend_label=unique_data)
                     labels = LabelSet(x='x', y='y', text='y', x_offset=5, y_offset=5, source=ColumnDataSource(data=df_stack), text_align='right', text_font_size='11px')
-                    
+                    # Create hover tool
+                    hover = HoverTool(tooltips=[("Number", "@{y}")])
+                    plot_figure.add_tools(hover)
+                    plot_figure.xaxis.major_label_orientation = pi/4
+                    plot_figure.add_layout(labels)
+                    self.layout.children[1].children.insert(1, plot_figure)
             else:
                 self.bar = plot_figure.vbar(x='x', top='y', width=0.5, source=pd.DataFrame(res))
                 labels = LabelSet(x='x', y='y', text='y', x_offset=5, y_offset=5, source=ColumnDataSource(data=res), text_align='right', text_font_size='11px')
 
             
                                   
-             # Create hover tool
-            hover = HoverTool(tooltips=[("Number", "@{y}")])
-            plot_figure.add_tools(hover)
-            plot_figure.xaxis.major_label_orientation = pi/4
-            plot_figure.add_layout(labels)
-
-            
-
-
-            self.layout.children[1].children.insert(1, plot_figure)
+                # Create hover tool
+                hover = HoverTool(tooltips=[("Number", "@{y}")])
+                plot_figure.add_tools(hover)
+                plot_figure.xaxis.major_label_orientation = pi/4
+                plot_figure.add_layout(labels)
+                self.layout.children[1].children.insert(1, plot_figure)
