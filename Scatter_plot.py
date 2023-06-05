@@ -93,27 +93,29 @@ class ScatterPlot(GeneralPlot):
  
                 unique_data = self.plot_data.get_column_from_name(selected, self.selected_color_stra)
 
-                if len(unique_data) <=2:
-                    button.label = "Too few categories! (need to >=3)"
-                    button.button_type = "danger"
-                    self.scatter = None
-                elif len(unique_data) > 10:
+
+                if len(unique_data) > 20:
+                    print(len(unique_data))
                     button.label = "Too many categories! Please apply filter!"
                     button.button_type = "danger"
                     self.scatter = None
                 else:
-                    palette = d3['Category10'][len(unique_data)]
+
+                    if len(unique_data) <=2:
+                        palette = ('#1f77b4', '#ff7f0e')
+                    else:
+                        palette = d3['Category20'][len(unique_data)]
                     
+                    print(unique_data)
                     index_cmap = factor_cmap(self.selected_color_stra, palette=palette, factors=unique_data)
 
                     self.scatter = plot_figure.scatter('x', 'y', legend_field=self.selected_color_stra, fill_color=index_cmap, source=selected)
-                    plot_figure.legend.location = "bottom_right"
+                    # plot_figure.legend.location = "bottom_right"
                     self.plot_settings(selected, plot_var_1, plot_var_2, plot_figure) 
                     self.layout.children[1].children.insert(1, plot_figure)
                     
             else:
                 self.scatter = plot_figure.scatter('x', 'y', source=selected)
-            
             
                 self.plot_settings(selected, plot_var_1, plot_var_2, plot_figure) 
                 self.layout.children[1].children.insert(1, plot_figure)

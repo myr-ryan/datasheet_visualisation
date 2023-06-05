@@ -89,11 +89,16 @@ class BarChart(GeneralPlot):
                 deleted = []
                 for x in x_val:
                     counter = 0
-                    for l in selected[plot_var_1]:
-                        if x in str(l):
+                    for l in selected[plot_var_1].tolist():
+                        if x == 'VGG-F':
+                                print(str(l))
+                        if x in str(l):             
                             counter += 1
                     if counter == 0:
                         deleted.append(x)
+                    # # TODO delete this
+                    # elif counter <= 10:
+                    #     deleted.append(x)
                     else:
                         y_val.append(counter)
                 
@@ -129,11 +134,7 @@ class BarChart(GeneralPlot):
                 # print(unique_data)
                 # unique_data = selected[self.selected_color_stra].unique().tolist()
 
-                if len(unique_data) <=2:
-                    button.label = "Too few categories! (need to >=3)"
-                    button.button_type = "danger"
-                    self.bar = None
-                elif len(unique_data) > 10:
+                if len(unique_data) > 10:
                     button.label = "Too many categories! Please apply filter!"
                     button.button_type = "danger"
                     self.bar = None     
@@ -148,8 +149,11 @@ class BarChart(GeneralPlot):
                     df_stack = pd.concat([pd.DataFrame(res), df_stack], axis=1)
                     # Bokeh issue, vbar_stack will ignore entire row if first data column is NaN, so need to fill them with 0
                     df_stack = df_stack.fillna(0)
-
-                    palette = d3['Category10'][len(unique_data)]
+                 
+                    if len(unique_data) <=2:
+                        palette = ('#1f77b4', '#ff7f0e')
+                    else:
+                        palette = d3['Category10'][len(unique_data)]
                     
                     self.bar = plot_figure.vbar_stack(stackers=unique_data, x='x', width=0.5, color=palette, source=df_stack, legend_label=unique_data)
                     labels = LabelSet(x='x', y='y', text='y', x_offset=5, y_offset=5, source=ColumnDataSource(data=df_stack), text_align='right', text_font_size='11px')
