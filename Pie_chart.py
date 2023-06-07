@@ -90,12 +90,16 @@ class PieChart(GeneralPlot):
             # values = res['y'].tolist()
             # print(res['y'])
             # print(res['y'].sum())
-                     
-            # res['angle'] = [x/sum(values)*2*pi for x in values]
-            res['angle'] = res['y'] / res['y'].sum() * 2*pi
-            res['percentage'] = res['y'] / res['y'].sum()
-            res['color'] = d3['Category20'][len(x_val)]
-            # print(res)
+            if len(x_val) > 20:
+                    button.label = "Too many categories! Please apply filter!"
+                    button.button_type = "danger"
+                    self.pie = None
+            else:
+                # res['angle'] = [x/sum(values)*2*pi for x in values]
+                res['angle'] = res['y'] / res['y'].sum() * 2*pi
+                res['percentage'] = res['y'] / res['y'].sum()
+                res['color'] = d3['Category20'][len(x_val)]
+                # print(res)
 
             plot_figure = figure(height=400, width=500, title='Datasheet visualization', tooltips=None)
 

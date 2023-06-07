@@ -100,15 +100,14 @@ class ScatterPlot(GeneralPlot):
                     button.button_type = "danger"
                     self.scatter = None
                 else:
-
+                    # TODO counting for bracket lists
                     if len(unique_data) <=2:
                         palette = ('#1f77b4', '#ff7f0e')
                     else:
                         palette = d3['Category20'][len(unique_data)]
                     
-                    print(unique_data)
+                    # print(unique_data)
                     index_cmap = factor_cmap(self.selected_color_stra, palette=palette, factors=unique_data)
-
                     self.scatter = plot_figure.scatter('x', 'y', legend_field=self.selected_color_stra, fill_color=index_cmap, source=selected)
                     # plot_figure.legend.location = "bottom_right"
                     self.plot_settings(selected, plot_var_1, plot_var_2, plot_figure) 

@@ -151,24 +151,30 @@ class GeneralPlot:
                 continue
             selected_filter_values = c.children[1].value
             
+            # print(selected_filter)
+            # print(selected_filter_values)
             if selected_filter in self.plot_data.bool_list:  
                 # print('hello3?') 
                 selected_filter_values = self.str_to_bool(selected_filter_values)
                 df = df[df[selected_filter].isin(selected_filter_values)]
+                
             elif selected_filter in self.plot_data.categ_list:
                 # print(selected_filter) 
                 # print(selected_filter_values)
                 # if (selected_filter == 'task') or (selected_filter == 'subspec'):
                 #     df = df[df[selected_filter_values].any(axis='columns')]
                 # if (str(df[selected_filter][0]).startswith('[')) and (str(df[selected_filter][0]).endswith(']')):
-                if df[selected_filter].str.contains('\[').any() and df[selected_filter].str.contains('\]').any():
+                # if df[selected_filter].str.contains('\[').any() and df[selected_filter].str.contains('\]').any():
+                if selected_filter in self.plot_data.brackets_list:
                     # print('hello4?')
                     # print(str(selected_filter_values))
                     cate_name = list(selected_filter_values)
+                    
                     df = df[df[selected_filter].str.contains('|'.join(cate_name), regex=True, na=False)]
                 else:    
                     # print('hello2?')      
                     df = df[df[selected_filter].isin(selected_filter_values)]
+                    # print(df['neural network type'].tolist())
                 # print(np.unique(df[selected_filter].tolist()))
                 # print(df)
             else:
@@ -186,6 +192,7 @@ class GeneralPlot:
             else:
                 print('Selected range %s is not numerical data, which should not happen' % selected_range)
 
+        # print(df['neural network type'].tolist())
         return df
 
     def cb_generate(self, selected):

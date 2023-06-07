@@ -82,6 +82,7 @@ class BarChart(GeneralPlot):
             # print(selected)
             x_val = self.cate_select_widget.value
             # x_val = selected[plot_var_1]
+            # print(selected[plot_var_1].tolist())
 
             if plot_var_1 in self.plot_data.brackets_list:
                 # x_val = self.plot_data.get_column_from_name(selected, plot_var_1)          
@@ -89,10 +90,10 @@ class BarChart(GeneralPlot):
                 deleted = []
                 for x in x_val:
                     counter = 0
-                    for l in selected[plot_var_1].tolist():
-                        if x == 'VGG-F':
-                                print(str(l))
-                        if x in str(l):             
+                    for l in selected[plot_var_1].tolist():        
+                        if x in str(l):      
+                            # if x == 'VGG-F':
+                            #     print(str(l))       
                             counter += 1
                     if counter == 0:
                         deleted.append(x)
@@ -128,32 +129,72 @@ class BarChart(GeneralPlot):
             plot_figure = figure(x_range=x_val, height=400, width=500, title='Datasheet visualization', tooltips=None)
 
             if self.selected_color_stra != '(select)':
-
                 unique_data = self.plot_data.get_column_from_name(selected, self.selected_color_stra)
+                
+                if self.selected_color_stra in self.plot_data.brackets_list:
+                    # Extract unique data from filter widgets instead of selected because there could be extra values in the bracket lists.     
+                    for c in self.filter_widgets.children:
+                        if c.children[0].value == self.selected_color_stra:
+                            unique_data = c.children[1].value
+                
                 unique_data.sort()
-                # print(unique_data)
+                
                 # unique_data = selected[self.selected_color_stra].unique().tolist()
 
-                if len(unique_data) > 10:
+                if len(unique_data) > 20:
                     button.label = "Too many categories! Please apply filter!"
                     button.button_type = "danger"
                     self.bar = None     
                 else: 
-                    df_stack = pd.DataFrame([])
-                    for cat in x_val:                  
-                        stacked_per_task = selected[self.selected_color_stra][selected[plot_var_1] == cat].value_counts(sort=False).to_frame().sort_index()
-                        df_stack = pd.concat([df_stack, stacked_per_task], axis=1)
+                    if self.selected_color_stra not in self.plot_data.brackets_list:
+                        df_stack = pd.DataFrame([])
+                        for cat in x_val:                  
+                            stacked_per_task = selected[self.selected_color_stra][selected[plot_var_1] == cat].value_counts(sort=False).to_frame().sort_index()
+                            df_stack = pd.concat([df_stack, stacked_per_task], axis=1)
 
-                    df_stack = df_stack.transpose()
-                    df_stack.reset_index(inplace=True, drop=True)
-                    df_stack = pd.concat([pd.DataFrame(res), df_stack], axis=1)
-                    # Bokeh issue, vbar_stack will ignore entire row if first data column is NaN, so need to fill them with 0
-                    df_stack = df_stack.fillna(0)
+                        df_stack = df_stack.transpose()
+                        df_stack.reset_index(inplace=True, drop=True)
+                        df_stack = pd.concat([pd.DataFrame(res), df_stack], axis=1)
+                        # Bokeh: vbar_stack will ignore entire row if first data column is NaN, so need to fill them with 0
+                        df_stack = df_stack.fillna(0)
+                        # print(df_stack)
+                    else:
+                        # If column cell data in form of bracket lists
+                        df_stack = pd.DataFrame([])
+                        for color in unique_data:
+                            stacked_num = []
+                            for x in x_val:
+                                x_selected = selected.loc[selected[plot_var_1] == x]
+                                # print(x_selected)
+
+                                color_selected = x_selected.loc[x_selected[self.selected_color_stra].str.contains('\'' + color + '\'')]
+                                # print(color_selected[self.selected_color_stra])
+
+                                stacked_num.append(len(color_selected.index))
+                            
+                                # print(stacked_num)
+                                # print('------------------')
+                            df_stack[color] = stacked_num
+                        df_stack['x'] = x_val
+                        # print(df_stack)
+                        # for cat in x_val:
+                        #     print(selected.loc[self.selected_color_stra])
+                            # count = 0
+                            # for color in unique_data:
+                            #     if color in selected
+
+                        # for index, row in selected.iterrows():
+                            # print(row[])
+                            
+                        # print(x_val)
+                        
+
                  
                     if len(unique_data) <=2:
                         palette = ('#1f77b4', '#ff7f0e')
                     else:
-                        palette = d3['Category10'][len(unique_data)]
+                        palette = d3['Category20'][len(unique_data)]
+                    
                     
                     self.bar = plot_figure.vbar_stack(stackers=unique_data, x='x', width=0.5, color=palette, source=df_stack, legend_label=unique_data)
                     labels = LabelSet(x='x', y='y', text='y', x_offset=5, y_offset=5, source=ColumnDataSource(data=df_stack), text_align='right', text_font_size='11px')

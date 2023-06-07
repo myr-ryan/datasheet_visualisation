@@ -43,7 +43,8 @@ class Plot_Data:
                 column_data_no_nan[i] = column_data_no_nan[i].replace('\'', '')
                 column_data_no_nan[i] = column_data_no_nan[i].split(', ')
 
-            return np.unique([x for sublist in column_data_no_nan for x in sublist])
+            res = np.unique([x for sublist in column_data_no_nan for x in sublist])
+            return res.tolist()
         else:
             return column_data_no_nan
 
@@ -124,9 +125,15 @@ class Plot_Data:
     def bol_to_cat(self, df, new_column_name, columns):
 
         cols_to_cat = df.loc[:, columns]
+        # print(cols_to_cat)
         df.drop(columns, axis=1, inplace=True)
+        # print(np.where(cols_to_cat))
+        # print(df.shape)
         # print(df)
         cols_to_cat = pd.DataFrame({new_column_name: cols_to_cat.columns[np.where(cols_to_cat)[1]]}, np.where(cols_to_cat)[0])  
+        # l = cols_to_cat.index.tolist()
+        # import collections
+        # print([item for item, count in collections.Counter(l).items() if count > 1])    
 
         # left join by default
         df = cols_to_cat.join(df)
@@ -163,11 +170,14 @@ class Plot_Data:
 
         self.task_values = [x for x in self.bool_list if x.startswith('task')]
         self.subspec_values = [x for x in self.bool_list if x.startswith('subspec')]
+        # print(self.subspec_values)
 
 
         # boolean columns to categorical columns
         df = self.bol_to_cat(df, 'task', self.task_values)
+        # print(df.shape)
         df = self.bol_to_cat(df, 'subspec', self.subspec_values)
+        # print(df.shape)
 
         self.categ_list = df.select_dtypes(include=['category']).columns.tolist()
         self.categ_list.sort()
