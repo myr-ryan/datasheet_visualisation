@@ -16,11 +16,6 @@ import numpy as np
 class GeneralPlot:
 
     
-    def edit_button(self, button, label, type):
-        button.label = label
-        button.button_type = type
-
-
     def cb_add_filter_button(self):
         total_options = self.filter_list_ops
         
@@ -32,13 +27,13 @@ class GeneralPlot:
                 is_value_selected = (is_value_selected and (c.children[0].value != '(select)'))
 
         if not is_value_selected:
-            self.edit_button(self.add_filter_button_widget, "Please reselect your filter or delete!", "danger")
+            edit_button(self.add_filter_button_widget, "Please reselect your filter or delete!", "danger")
         else:
-            self.edit_button(self.add_filter_button_widget, "Add more filters", "primary")
+            edit_button(self.add_filter_button_widget, "Add more filters", "primary")
             options = [x for x in total_options if not x in selected_options]
             options.sort()
             if options == ['(select)']:
-                self.edit_button(self.add_filter_button_widget, "No more filters", "danger")
+                edit_button(self.add_filter_button_widget, "No more filters", "danger")
             else:
                 new_filter_widget = Select(title='Please select your filter', value='(select)', options=options, width=150, height=70)
                 new_filter_delete_button = Button(label="Delete this filter", button_type="primary", width=50, height=30, margin=(40, 0, 0, 0))
@@ -62,13 +57,13 @@ class GeneralPlot:
                 is_value_selected = (is_value_selected and (c.children[0].children[0].value != '(select)'))
         
         if not is_value_selected:
-            self.edit_button(self.add_range_button_widget, "Please reselect your range or delete!", "danger")
+            edit_button(self.add_range_button_widget, "Please reselect your range or delete!", "danger")
         else:
-            self.edit_button(self.add_range_button_widget, "Add more ranges", "primary")
+            edit_button(self.add_range_button_widget, "Add more ranges", "primary")
             options = [x for x in total_options if not x in selected_options]
             options.sort()
             if options == ['(select)']:
-                self.edit_button(self.add_filter_button_widget, "No more ranges", "danger")
+                edit_button(self.add_filter_button_widget, "No more ranges", "danger")
             else:
                 
                 new_range_select_widget = Select(title='Please select your variable', value="(select)", options=options, width=170, height=50)
@@ -112,7 +107,7 @@ class GeneralPlot:
         # From General_plot_helper.py
         update_other_selects(old, new, widget, self.filter_widgets, w_type='filters')
 
-        self.edit_button(self.add_filter_button_widget, "Add more filters", "primary")
+        edit_button(self.add_filter_button_widget, "Add more filters", "primary")
     
         df = pd.DataFrame(self.plot_data.source_backup.data)
         options=[]
@@ -224,7 +219,7 @@ class GeneralPlot:
         else:
             widget_list = self.range_selectors
 
-        self.edit_button(add_button, "Add more " + w_type, "primary")
+        edit_button(add_button, "Add more " + w_type, "primary")
         # From General_plot_helper.py
         delete_index = get_index_from_widget_list(widget_list, widget.value, w_type=w_type)
         widget_list.children.remove(widget_list.children[delete_index])
@@ -292,7 +287,7 @@ class GeneralPlot:
 
         self.filter_widgets = column(row(self.first_filter_select_widget, self.first_filter_delete_button))
         self.range_selectors = column(column(row(self.first_range_select_widget, self.first_range_min_widget, self.first_range_max_widget), row(self.first_range_widget, self.first_range_delete_button)))
-        self.plot_spec_select_widgets = row()
+        self.plot_spec_select_widgets = column(row())
 
         
         # self.upload_widget.on_change('value', self.cb_upload)

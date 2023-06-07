@@ -56,3 +56,7 @@ def get_index_from_widget_list(widget_list, widget_value, w_type):
                 return i
         print('Failed to find in the widget list')
         return index
+
+def edit_button(button, label, type):
+    button.label = label
+    button.button_type = type
