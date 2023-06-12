@@ -7,6 +7,7 @@ from Scatter_plot import *
 from General_plot import *
 from Bar_chart import *
 from Pie_chart import *
+from Heatmap import *
 import functools
 
 
@@ -23,6 +24,8 @@ def plot_type_creation(attr, old, new, select_widget):
         plot = BarChart(plot_data, layout)
     elif new == 'pie chart':
         plot = PieChart(plot_data, layout)
+    elif new == 'heatmap':
+        plot = HeatMap(plot_data, layout)
     else:
         print('Invalid plot type, please select again.')
 
@@ -71,7 +74,7 @@ def cb_upload(attr, old, new):
         plot_data.preprocessing()
 
         # plot_data.debug_printing()
-        plot_type_select_widget = Select(title="Please select a plot type", value="(select)", options=['(select)', 'scatter', 'bar chart', 'pie chart'], width=245, height=50, margin=(0,0,50,0))
+        plot_type_select_widget = Select(title="Please select a plot type", value="(select)", options=['(select)', 'scatter', 'bar chart', 'pie chart', 'heatmap'], width=245, height=50, margin=(0,0,50,0))
         layout.children[0].children.insert(2, plot_type_select_widget)
         plot_type_select_widget.on_change('value',functools.partial(plot_type_creation, select_widget=plot_type_select_widget))
         

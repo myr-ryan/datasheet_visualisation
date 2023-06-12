@@ -196,6 +196,7 @@ class Plot_Data:
         self.source.remove('index')
         self.source_backup.data = df
         self.source_backup.remove('index')
+        # print(self.numeric_var)
         # print(pd.DataFrame(self.source.data))
         # print(pd.DataFrame(self.source_backup.data).columns)
 
