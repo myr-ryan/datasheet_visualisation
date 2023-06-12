@@ -97,25 +97,32 @@ class PieChart(GeneralPlot):
             else:
                 # res['angle'] = [x/sum(values)*2*pi for x in values]
                 res['angle'] = res['y'] / res['y'].sum() * 2*pi
-                res['percentage'] = res['y'] / res['y'].sum()
+                res['percentage'] = res['y'] / res['y'].sum() * 100
+                res['percentage'] = res['percentage'].apply(lambda x: str(round(x, 2)) + '%')
                 res['color'] = d3['Category20'][len(x_val)]
+
+                radius = 0.4
+                # Projection on X and Y axis for label positioning
+                res['label_x_pos'] = np.cos(res['angle'].cumsum()-res['angle'].div(2))*3*radius/4
+                res['label_y_pos'] = np.sin(res['angle'].cumsum()-res['angle'].div(2))*3*radius/4
                 # print(res)
 
-            plot_figure = figure(height=400, width=500, title='Datasheet visualization', tooltips=None)
+                plot_figure = figure(height=400, width=500, title='Datasheet visualization', tooltips=None)
 
-            self.pie = plot_figure.wedge(x=0, y=1, radius=0.4, start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
-                                         line_color='white', fill_color='color', legend_field='x', source=res)
+                self.pie = plot_figure.wedge(x=0, y=0, radius=0.4, start_angle=cumsum('angle', include_zero=True), end_angle=cumsum('angle'),
+                                            line_color='white', fill_color='color', legend_field='x', source=res)
+                
+                print(res['percentage'])
+                print(res)
+                # res['angle'] = res['angle'].round(2)
+                # res['angle'] = ' '.join(str(res['angle']))
+                # res['angle'] = (res['angle'] * 100).astype(str) + '%'
+                labels = LabelSet(x='label_x_pos', y='label_y_pos', text='percentage', level='glyph', source=ColumnDataSource(data=res), text_font_size='11px')
+                # angle=cumsum('percentage', include_zero=True)
+                plot_figure.axis.axis_label = None
+                plot_figure.axis.visible = False
+                plot_figure.grid.grid_line_color = None
+                plot_figure.legend.label_text_font_size = '7pt'
+                plot_figure.add_layout(labels)
             
-            print(res['percentage'])
-            # res['angle'] = res['angle'].round(2)
-            # res['angle'] = ' '.join(str(res['angle']))
-            # res['angle'] = (res['angle'] * 100).astype(str) + '%'
-            # labels = LabelSet(x=0, y=1, text='angle', angle=cumsum('angle', include_zero=True), source=ColumnDataSource(data=res), text_baseline='top', text_align='center', text_font_size='11px')
-
-            plot_figure.axis.axis_label = None
-            plot_figure.axis.visible = False
-            plot_figure.grid.grid_line_color = None
-            plot_figure.legend.label_text_font_size = '7pt'
-            # plot_figure.add_layout(labels)
-            
-            self.layout.children[1].children.insert(1, plot_figure)
+                self.layout.children[1].children.insert(1, plot_figure)
