@@ -157,7 +157,13 @@ class Plot_Data:
     def preprocessing(self):
         df = pd.DataFrame(self.source.data)
 
+        # TODO change this in future version
         df = df.dropna(subset=['ml_task_description'], how='all')
+
+        # TODO delete this in future version, these are the new added columns with a lot of nan values
+        new_bool_cols = ['subspec_colorectal', 'subspec_gastric', 'subspec_esophagus']
+
+        df[new_bool_cols] = df[new_bool_cols].fillna(0)
 
         self.column_names = list(df.columns.values)
 
