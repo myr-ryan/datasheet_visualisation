@@ -109,10 +109,22 @@ class BarChart(GeneralPlot):
                 
                 x_val = [x for x in x_val if x not in deleted]
 
+            top_20_string = ''
+            if len(x_val) > 20:
+                top_20_idx = np.argsort(y_val)[-20:].tolist()
+                # print(top_20_idx)
+                x_val = [x_val[x] for x in top_20_idx]
+                y_val = [y_val[y] for y in top_20_idx]
+                top_20_string += '(top20)'
+            else:
+                sorted_idx = np.argsort(y_val).tolist()
+                x_val = [x_val[x] for x in sorted_idx]
+                y_val = [y_val[y] for y in sorted_idx]
+
             # Result for plotting
             res = {'x': x_val, 'y': y_val}
 
-            plot_figure = figure(x_range=x_val, height=400, width=500, title= plot_var_1 + ' distribution', tooltips=None)
+            plot_figure = figure(x_range=x_val, height=400, width=500, title= plot_var_1 + ' distribution' + top_20_string, tooltips=None)
 
             # Next deal with coloring if there is any
             if self.selected_color_stra != '(select)':
@@ -128,7 +140,7 @@ class BarChart(GeneralPlot):
                 
                 unique_data.sort()
                 
-                if len(unique_data) > 20:
+                if len(unique_data) < 20:
                     edit_button(button, "Too many categories! Please apply filter!", "danger")
                     self.bar = None     
                 else:     
@@ -161,9 +173,9 @@ class BarChart(GeneralPlot):
                         
                         df_stack['y'] = df_stack.sum(axis=1)
                         df_stack['x'] = x_val
-                        print(df_stack)
+                        # print(df_stack)
+                    
                         
-
                     # Bokeh color palette only work for > 3, deal with 1 and 2 manualy      
                     if len(unique_data) == 1:   
                         palette = ('#1f77b4')

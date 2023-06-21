@@ -2,46 +2,48 @@ import unittest
 from Plot_Data import *
 
 class TestData(unittest.TestCase):
+    empty_data = {'x':[],'y':[]}
+    plot_data = Plot_Data(empty_data)
+
+    # The link for excel should be customized
+    f = '/Users/ryanma/Library/CloudStorage/OneDrive-King\'sCollegeLondon/kings/Datasheet.xlsx'
+    df_temp = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
+    plot_data.upload_data(df_temp)
+    plot_data.preprocessing()
+
 
     def test_list_in_plotdata(self):
-        empty_data = {'x':[],'y':[]}
-        plot_data = Plot_Data(empty_data)
 
-        # The link for excel should be customized
-        f = '/Users/ryanma/Library/CloudStorage/OneDrive-King\'sCollegeLondon/kings/Datasheet.xlsx'
-        df_temp = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
-        plot_data.upload_data(df_temp)
-        plot_data.preprocessing()
         # print(plot_data.brackets_list)
 
-        self.assertEqual(plot_data.brackets_list, ['data augmentation techniques', 'explainability', 'balanced_techniques', 'pretrained dataset', 'neural network type', 
-                                                   'data collection technology', 'authors', 'author_affils', 'keywords', 'mesh_terms', 'references_pmids', 
-                                                   'affil_countries', 'affil_countries_unique', 'countries_lc'])
+        self.assertEqual(self.plot_data.brackets_list, ['image_size', 'augmentation_techniques', 'explainability', 'balanced_techniques', 'dataset_pretrained', 'neural_network_type', 
+                                                   'data_collection_technology', 'authors', 'author_affils', 'keywords', 'mesh_terms', 'references_pmids', 
+                                                   'affil_countries', 'affil_countries_unique', 'countries_lc', 'task', 'subspec'])
 
     
     def test_data_type(self):
 
-        empty_data = {'x':[],'y':[]}
-        plot_data = Plot_Data(empty_data)
+        # empty_data = {'x':[],'y':[]}
+        # plot_data = Plot_Data(empty_data)
 
-        # The link for excel should be customized
-        f = '/Users/ryanma/Library/CloudStorage/OneDrive-King\'sCollegeLondon/kings/Datasheet.xlsx'
-        df_temp = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
-        plot_data.upload_data(df_temp)
-        plot_data.preprocessing()
+        # # The link for excel should be customized
+        # f = '/Users/ryanma/Library/CloudStorage/OneDrive-King\'sCollegeLondon/kings/Datasheet.xlsx'
+        # df_temp = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
+        # plot_data.upload_data(df_temp)
+        # plot_data.preprocessing()
 
-        df = pd.DataFrame(plot_data.source.data)
+        df = pd.DataFrame(self.plot_data.source.data)
         self.assertEqual(df['task'].dtypes, 'category')
         self.assertEqual(df['subspec'].dtypes, 'category')
-        self.assertEqual(df['subspec'].dtypes, 'category')
-        self.assertEqual(df['Paper ID'].dtypes, 'float')
+        self.assertEqual(df['Paper_ID'].dtypes, 'int')
         self.assertEqual(df['Title'].dtypes, 'string')
         self.assertEqual(df['ml_task_description'].dtypes, 'category')
         self.assertEqual(df['patient_num'].dtypes, 'float')
+        self.assertEqual(df['image_size'].dtypes, 'category')
         self.assertEqual(df['image_type'].dtypes, 'category')
-        self.assertEqual(df['data augmentation'].dtypes, 'bool')
-        self.assertEqual(df['data augmentation techniques'].dtypes, 'category')
-        self.assertEqual(df['data_size_augmented'].dtypes, 'bool')
+        self.assertEqual(df['augmentation_used'].dtypes, 'bool')
+        self.assertEqual(df['augmentation_techniques'].dtypes, 'category')
+        self.assertEqual(df['data_augmented'].dtypes, 'bool')
         self.assertEqual(df['DataSize_all'].dtypes, 'float')
         self.assertEqual(df['DataSize_validation'].dtypes, 'float')
         self.assertEqual(df['DataSize_testing'].dtypes, 'float')
@@ -49,25 +51,26 @@ class TestData(unittest.TestCase):
         self.assertEqual(df['explainability'].dtypes, 'category')
         self.assertEqual(df['balanced'].dtypes, 'bool')
         self.assertEqual(df['balanced_comment'].dtypes, 'string')
+        self.assertEqual(df['balanced_techniques'].dtypes, 'category')
         self.assertEqual(df['bias'].dtypes, 'string')
         self.assertEqual(df['class_labels'].dtypes, 'string')
         self.assertEqual(df['data_source'].dtypes, 'string')
         self.assertEqual(df['data_links'].dtypes, 'string')
-        self.assertEqual(df['raw data availability'].dtypes, 'category')
-        self.assertEqual(df['processed data availability'].dtypes, 'category')
-        self.assertEqual(df['code availability'].dtypes, 'bool')
+        self.assertEqual(df['raw_data_availability'].dtypes, 'category')
+        self.assertEqual(df['processed_data_availability'].dtypes, 'category')
+        self.assertEqual(df['code_availability'].dtypes, 'bool')
         self.assertEqual(df['code_links'].dtypes, 'string')
         self.assertEqual(df['gender'].dtypes, 'category')
-        self.assertEqual(df['age specified'].dtypes, 'string')
+        self.assertEqual(df['age_specified'].dtypes, 'string')
 
         # self.assertEqual(df['task_seg+obj_det'].dtypes, 'bool')
         # self.assertEqual(df['task_detection'].dtypes, 'bool')
         # self.assertEqual(df['task_diagnosis'].dtypes, 'bool')
         # self.assertEqual(df['task_prognosis'].dtypes, 'bool')
         # self.assertEqual(df['task_treatment_design'].dtypes, 'bool')
-        self.assertEqual(df['treatment design comment'].dtypes, 'string')
+        self.assertEqual(df['treatment_design_comment'].dtypes, 'string')
         # self.assertEqual(df['task_risk prediction'].dtypes, 'bool')
-        self.assertEqual(df['risk prediction comment'].dtypes, 'string')
+        self.assertEqual(df['risk_prediction_comment'].dtypes, 'string')
         # self.assertEqual(df['task_subtyping'].dtypes, 'bool')
         # self.assertEqual(df['task_others'].dtypes, 'bool')
         self.assertEqual(df['task_others (specify)'].dtypes, 'string')     
@@ -85,13 +88,15 @@ class TestData(unittest.TestCase):
         self.assertEqual(df['performance_F1'].dtypes, 'float')
         self.assertEqual(df['performance_accuracy'].dtypes, 'float')
         self.assertEqual(df['performance_mean'].dtypes, 'float')
-        self.assertEqual(df['neural network type'].dtypes, 'category')
-        self.assertEqual(df['data collection technology'].dtypes, 'category')
-        self.assertEqual(df['algorithm-pipeline'].dtypes, 'string')
+        self.assertEqual(df['dataset_pretrained'].dtypes, 'category')
+        self.assertEqual(df['neural_network_type'].dtypes, 'category')
+        self.assertEqual(df['data_collection_technology'].dtypes, 'category')
+        self.assertEqual(df['algorithm_pipeline'].dtypes, 'string')
         self.assertEqual(df['comments'].dtypes, 'string')
-        self.assertEqual(df['year'].dtypes, 'float')
-        self.assertEqual(df['ID'].dtypes, 'float')
-        self.assertEqual(df['pmid'].dtypes, 'float')
+        self.assertEqual(df['year'].dtypes, 'datetime64[ns]')
+        self.assertEqual(df['algo_neural_net'].dtypes, 'bool')
+        self.assertEqual(df['ID'].dtypes, 'int')
+        self.assertEqual(df['pmid'].dtypes, 'int')
         self.assertEqual(df['doi'].dtypes, 'string')
         self.assertEqual(df['abstract'].dtypes, 'string')
         self.assertEqual(df['article_date'].dtypes, 'datetime64[ns]')

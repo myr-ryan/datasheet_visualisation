@@ -48,20 +48,33 @@ class Plot_Data:
         else:
             return column_data_no_nan
 
+    def convert_with_warning(self, df, column_name, type):
+        try:
+            if type == int:
+                df[column_name] = df[column_name].fillna(0)
+            df = df.astype({column_name: type})
+
+            return df
+        except:
+            print('Data type conversion failed for column ', column_name)
+
 
     def type_conversion(self, df):
-        # print(self.brackets_list)
-        for c in self.column_names:     
+        for c in self.column_names:   
+            # print(self.brackets_list) 
             if c in self.brackets_list:
-                df = df.astype({c: 'category'})
+                df = self.convert_with_warning(df, c, 'category')
             
-
+            elif ('date' in c.lower()) or ('year' in c.lower()):
+                df = self.convert_with_warning(df, c, 'datetime64[ns]')
+            elif (c.lower().startswith('id')) or (c.lower().endswith('id')):
+                df = self.convert_with_warning(df, c, int)
+                # df = df.astype({c: int})       
             elif df[c].dtype != 'datetime64[ns]':
                 column_data_no_nan = self.get_column_from_name(df, c)
                    
-
                 if len(column_data_no_nan) == 1:
-                    if column_data_no_nan == [1] or column_data_no_nan == [1.0] or column_data_no_nan == [0] or column_data_no_nan == [0.0]:
+                    if (column_data_no_nan == [1]) or (column_data_no_nan == [1.0]) or (column_data_no_nan == [0]) or (column_data_no_nan == [0.0]):
                         df = df.astype({c: bool})
                     else:
                         df = df.astype({c: 'string'})
@@ -123,24 +136,34 @@ class Plot_Data:
 
 
     def bol_to_cat(self, df, new_column_name, columns):
+        self.categ_list.append(new_column_name)
+        # self.brackets_list.append(new_column_name)
 
         cols_to_cat = df.loc[:, columns]
         # print(cols_to_cat)
         df.drop(columns, axis=1, inplace=True)
-        # print(np.where(cols_to_cat))
-        # print(df.shape)
-        # print(df)
-        cols_to_cat = pd.DataFrame({new_column_name: cols_to_cat.columns[np.where(cols_to_cat)[1]]}, np.where(cols_to_cat)[0])  
-        # l = cols_to_cat.index.tolist()
-        # import collections
-        # print([item for item, count in collections.Counter(l).items() if count > 1])    
 
-        # left join by default
-        df = cols_to_cat.join(df)
-        df.reset_index(drop=True, inplace=True)
-        df = df.astype({new_column_name: 'category'})
+        # Make them bracket like categorical data
+        cols_to_cat = cols_to_cat.where(cols_to_cat != 1, cols_to_cat.columns.to_series(), axis=1)
+        cols_to_cat.replace(0, np.nan, inplace=True)
+        cols_to_cat.replace(False, np.nan, inplace=True)
         
+        
+        cols_to_cat[new_column_name] = cols_to_cat.values.tolist()
+        cols_to_cat[new_column_name] = cols_to_cat[new_column_name].apply(lambda x: [i for i in x if (str(i) != "nan")])
+        # cols_to_cat[new_column_name] = cols_to_cat[new_column_name].apply(lambda x: ['\'' + i + '\'' for i in x])
+        cols_to_cat[new_column_name] = cols_to_cat[new_column_name].apply(lambda x: [''.join(i) for i in x])
+        cols_to_cat[new_column_name] = [str(x) for x in cols_to_cat[new_column_name]]
 
+        
+        # print(cols_to_cat[new_column_name])
+
+        df[new_column_name] = cols_to_cat[new_column_name].copy()
+        df = self.convert_with_warning(df, new_column_name, 'category')
+        self.column_names.append(new_column_name)
+        self.brackets_list.append(new_column_name)
+
+        
         return df
 
 
@@ -154,6 +177,8 @@ class Plot_Data:
                     self.brackets_list.append(c)
 
 
+
+
     def preprocessing(self):
         df = pd.DataFrame(self.source.data)
 
@@ -162,12 +187,13 @@ class Plot_Data:
 
         # TODO delete this in future version, these are the new added columns with a lot of nan values
         new_bool_cols = ['subspec_colorectal', 'subspec_gastric', 'subspec_esophagus']
-
         df[new_bool_cols] = df[new_bool_cols].fillna(0)
+
 
         self.column_names = list(df.columns.values)
 
-        self.make_bracket_list(df)
+
+        self.make_bracket_list(df)     
 
         df = self.type_conversion(df)     
 
@@ -179,13 +205,17 @@ class Plot_Data:
         # print(self.subspec_values)
 
 
+        # print(df.shape)
         # boolean columns to categorical columns
         df = self.bol_to_cat(df, 'task', self.task_values)
         # print(df.shape)
         df = self.bol_to_cat(df, 'subspec', self.subspec_values)
         # print(df.shape)
+        # print(self.brackets_list)
 
-        self.categ_list = df.select_dtypes(include=['category']).columns.tolist()
+        # print(self.categ_list)
+
+        self.categ_list += df.select_dtypes(include=['category']).columns.tolist()
         self.categ_list.sort()
 
         # update the boolean list

@@ -8,6 +8,7 @@ from General_plot import *
 from Bar_chart import *
 from Pie_chart import *
 from Heatmap import *
+from Box_plot import *
 import functools
 
 
@@ -26,6 +27,8 @@ def plot_type_creation(attr, old, new, select_widget):
         plot = PieChart(plot_data, layout)
     elif new == 'heatmap':
         plot = HeatMap(plot_data, layout)
+    elif new == 'box plot':
+        plot = BoxPlot(plot_data, layout)
     else:
         print('Invalid plot type, please select again.')
 
@@ -66,17 +69,24 @@ def plot_type_creation(attr, old, new, select_widget):
 def cb_upload(attr, old, new):
         
         # Read excel file into dataframe
-        decoded = base64.b64decode(new)
-        f = io.BytesIO(decoded)
-        df = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
-        
-        plot_data.upload_data(df)
-        plot_data.preprocessing()
+        try:
+            decoded = base64.b64decode(new)
+            f = io.BytesIO(decoded)
+            df = pd.read_excel(f, sheet_name='Sheet1', engine='openpyxl')
+            
+            plot_data.upload_data(df)
+            plot_data.preprocessing()
 
-        # plot_data.debug_printing()
-        plot_type_select_widget = Select(title="Please select a plot type", value="(select)", options=['(select)', 'scatter', 'bar chart', 'pie chart', 'heatmap'], width=245, height=50, margin=(0,0,50,0))
-        layout.children[0].children.insert(2, plot_type_select_widget)
-        plot_type_select_widget.on_change('value',functools.partial(plot_type_creation, select_widget=plot_type_select_widget))
+            # plot_data.debug_printing()
+            plot_type_select_widget = Select(title="Please select a plot type", value="(select)", options=['(select)', 'scatter', 'bar chart', 'pie chart', 'heatmap', 'box plot'], width=245, height=50, margin=(0,0,50,0))
+            layout.children[0].children.insert(2, plot_type_select_widget)
+            plot_type_select_widget.on_change('value',functools.partial(plot_type_creation, select_widget=plot_type_select_widget))
+
+        except:
+            print('File uploaded failed, please make sure the file is in .xlsx format and the data is in sheet named Sheet1.')
+
+
+        
         
 
         
@@ -85,7 +95,9 @@ plot_data = Plot_Data(empty_data)
 
 upload_widget = FileInput(accept='.xlsx', width=500, height=40, margin=(0,0,25,0))
 
-upload_widget.on_change('value', functools.partial(cb_upload))
+
+
+upload_widget.on_change('value', cb_upload)
 
 
 layout = row(column(upload_widget), column())

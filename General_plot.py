@@ -5,7 +5,8 @@ import io
 import pandas as pd
 import functools
 from bokeh.layouts import column, row
-from General_plot_helper import *
+# from General_plot_helper import *
+from utils import edit_button, update_other_selects, get_index_from_widget_list
 from bokeh.palettes import d3
 from bokeh.models import CategoricalColorMapper
 import numpy as np
@@ -257,13 +258,13 @@ class GeneralPlot:
         self.plot_data = plot_data
 
         # ops - options: meaning the list plus "(select)"
-        self.filter_list_ops = self.plot_data.filter_list
+        self.filter_list_ops = self.plot_data.filter_list.copy()
         self.filter_list_ops.insert(0, "(select)")
 
-        self.numeric_var_ops = self.plot_data.numeric_var
+        self.numeric_var_ops = self.plot_data.numeric_var.copy()
         self.numeric_var_ops.insert(0, "(select)")
 
-        self.categ_list_ops = self.plot_data.categ_list
+        self.categ_list_ops = self.plot_data.categ_list.copy()
         self.categ_list_ops.insert(0, "(select)")
 
 
