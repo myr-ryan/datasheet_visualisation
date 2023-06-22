@@ -19,9 +19,10 @@ class HeatMap(GeneralPlot):
         # Initialize general widgets and call back functions
         super(HeatMap, self).__init__(plot_data=plot_data, layout=layout)
 
-        self.ops = [x for x in self.plot_data.numeric_var if 'ID' in x or 'pmid' in x]
+        self.ops = [x for x in self.numeric_var_ops if 'ID' in x or 'pmid' in x]
 
-        self.ops.insert(0, '(select)')
+        # self.ops.insert(0, '(select)')
+        print(self.ops)
 
         self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.ops, width=245, height=50, margin=(0,0,50,0))
 

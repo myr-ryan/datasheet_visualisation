@@ -19,8 +19,8 @@ class ScatterPlot(GeneralPlot):
         super(ScatterPlot, self).__init__(plot_data=plot_data, layout=layout)
 
         # For scatter plot, user need to select x and y axis variable
-        self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.plot_data.numeric_var, width=245, height=50, margin=(0,0,50,0))
-        self.var_2_select_widget = Select(title="Please select var on y axis", value="(select)", options=self.plot_data.numeric_var, width=245, height=50, margin=(0,0,50,0))
+        self.var_1_select_widget = Select(title="Please select var on x axis", value="(select)", options=self.numeric_var_ops, width=245, height=50, margin=(0,0,50,0))
+        self.var_2_select_widget = Select(title="Please select var on y axis", value="(select)", options=self.numeric_var_ops, width=245, height=50, margin=(0,0,50,0))
 
         # For scatter plot, user could select colors for stratefication
         self.color_select_widget = Select(title='Please select the category for coloring', value="(select)", options=self.categ_list_ops, width=245, height=70, margin=(15, 0, 40, 0))

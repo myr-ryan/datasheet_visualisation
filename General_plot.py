@@ -252,8 +252,24 @@ class GeneralPlot:
         max_widget.low = min_value
         max_widget.high = max_value       
 
+    def clear_layout(self, layout):
+        # Layout format after resetting: layout = row(column(upload_widget, plot_type_select_widget), column())
+        first_half = layout.children[0].children
+        second_half = layout.children[1].children
+        # print(first_half)
+        # print(second_half)
 
-    def __init__(self, plot_data, layout):
+        while len(first_half) > 2:
+            del first_half[2]
+        while len(second_half) > 0:
+            del second_half[0]
+        # print(first_half)
+        # print(second_half)
+        
+
+
+    def reset(self, plot_data, layout):
+        self.clear_layout(layout)
         self.layout = layout
         self.plot_data = plot_data
 
@@ -305,3 +321,9 @@ class GeneralPlot:
         self.add_filter_button_widget.on_click(self.cb_add_filter_button)
         self.add_range_button_widget.on_click(self.cb_add_range_button)     
         self.generate_button.on_click(functools.partial(self.cb_generate, self.generate_button))
+
+
+
+    def __init__(self, plot_data, layout):
+        self.reset(plot_data, layout)
+        

@@ -15,10 +15,11 @@ import functools
 
 
 def plot_type_creation(attr, old, new, select_widget):
-    select_widget.disabled = True
+    # select_widget.disabled = True
     # layout = row(column(plot_type_select_widget), column())
 
     plot = None
+
     if new == 'scatter':
         plot = ScatterPlot(plot_data, layout)
     elif new == 'bar chart':
@@ -85,9 +86,6 @@ def cb_upload(attr, old, new):
         except:
             print('File uploaded failed, please make sure the file is in .xlsx format and the data is in sheet named Sheet1.')
 
-
-        
-        
 
         
 empty_data = {'x':[],'y':[]}
